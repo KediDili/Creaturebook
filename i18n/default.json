@@ -1,0 +1,10 @@
+{
+	"CB.Notebook.Item.Name": "Creature Notebook",
+	"CB.Notebook.Item.Desc": "Record all info on creatures you find into this notebook!",
+	"CB.UnknownLabel": "Unknown Creature",
+	"CB.UnknownDesc": "You haven't discovered this creature yet.",
+	"CB.LatinName": "Scientific name: ",
+	"CB.dateDiscovered": "Date discovered: ",
+	"CB.discoveredHUDMessage": "Congrats! You've discovered a new creature: ", 
+	"CB.discoveredHUDMessage.Already": "You have already discovered this creature!",
+}
