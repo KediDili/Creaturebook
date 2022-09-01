@@ -50,8 +50,9 @@ namespace Creaturebook
             Helper.Events.GameLoop.GameLaunched += OnGameLaunched;
             Helper.Events.GameLoop.Saving += OnSaving;
             Helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
-            Helper.Events.GameLoop.SaveCreated += OnSaveCreated;
+            Helper.Events.GameLoop.DayStarted += OnDayStarted;
             Helper.Events.Content.AssetRequested += OnAssetRequested;
+            Helper.Events.Player.Warped += OnWarped;
             Helper.Events.Multiplayer.PeerConnected += OnPeerConnected;
             Helper.Events.Multiplayer.ModMessageReceived += OnModMessageReceived;
         }
@@ -94,14 +95,14 @@ namespace Creaturebook
                     if (!File.Exists(Path.Combine(subfolder.FullName, "creature.json")))
                     {
                         Monitor.Log($"{contentPack.Manifest.Name} seems to lack a 'creature.json' under {subfolder.Name}. So add it or tell the author to.", LogLevel.Warn);
-                        continue;
+                        break;
                     }
                     creatureData = contentPack.ReadJsonFile<CreatureModel>(Path.Combine(subfolder.Parent.Name, subfolder.Name, "creature.json"));
 
                     if (creatureData == null)
                     {
                         Monitor.Log($"{contentPack.Manifest.Name} seems to have the 'creature.json', under {subfolder.Name} but it's empty.", LogLevel.Warn);
-                        continue;
+                        break;
                     }
 
                     if (!File.Exists(Path.Combine(subfolder.FullName, "book-image.png")))
@@ -213,7 +214,6 @@ namespace Creaturebook
                 Game1.activeClickableMenu = new NotebookMenu();
             else if (modConfig.OpenMenuKeybind.JustPressed() && uniqueModIDs.Count == 0)
                 Game1.addHUDMessage(new HUDMessage(Helper.Translation.Get("CB.noContentPacks"), 2));
-            
         }
         private void OnButtonPressed(object sender, ButtonPressedEventArgs e)
         {
@@ -234,7 +234,7 @@ namespace Creaturebook
                             var mousePos = e.Cursor.GrabTile;
                             string ID = Convert.ToString(newCreatures[i].ID);
                             string prefix = newCreatures[i].Prefix;
-                            if (Characters.Name.Contains(prefix + "_" + ID) && charName == prefix + "_" + ID && Characters.getTileLocation() == mousePos)
+                            if (Characters.Name.Contains(prefix + "_" + ID) && charName == prefix + "_" + ID && Characters.getTileLocation() == mousePos && singleModData.IsNotebookObtained)
                             {
                                 foreach (string modID in uniqueModIDs)
                                 {
@@ -280,7 +280,7 @@ namespace Creaturebook
                     string ItemName = Helper.Translation.Get("CB.Notebook.Item.Name");
                     string ItemDesc = Helper.Translation.Get("CB.Notebook.Item.Desc");
 
-                    editorDictionary.Data[31] = "Creature Notebook//-300/Basic /" + ItemName + "/" + ItemDesc;
+                    editorDictionary.Data[31] = "Creaturebook//-300/Basic /" + ItemName + "/" + ItemDesc;
                 });
             }
             if (e.NameWithoutLocale.IsEquivalentTo("Maps/springobjects"))
@@ -295,16 +295,47 @@ namespace Creaturebook
             }
             if (e.Name.IsEquivalentTo(Path.Combine("Mods", "KediDili.Creaturebook", "SearchButton")))
                 e.LoadFromModFile<Texture2D>("assets/SearchButton.png", AssetLoadPriority.Medium);
-        }
-        private void OnSaveCreated(object sender, SaveCreatedEventArgs e)
-        {
-            if (modConfig.WayToGetNotebook == "Inventory" && Context.IsMainPlayer)
+
+            if (e.NameWithoutLocale.IsEquivalentTo("Data/Events/Mountain") && modConfig.WayToGetNotebook == "Events")
             {
-                Game1.player.addItemByMenuIfNecessary(new StardewValley.Object(31, 1));
-                singleModData.IsNotebookObtained = true;
+                e.Edit(asset =>
+                {
+                    var editorDictionary = asset.AsDictionary<string, string>();
+                    string code1 = "none/16 31/farmer 15 39 0/addObject 12 31 31/skippable/pause 1000/move farmer 0 -8 3 false/emote farmer 16/pause 750/move farmer -2 0 3 false/message \"";
+                    string code2 = "\"/pause 1000/removeObject 12 31/message \"";
+                    string code3 = "\"/pause 750 /end warpOut";
+
+                    string text1 = Helper.Translation.Get("CB.ObtainNotebook.Event_1-1");
+                    string text2 = Helper.Translation.Get("CB.ObtainNotebook.Event_1-2");
+
+                    editorDictionary.Data["70030004/j 6/t 2000 2600/w rainy/H/Hl quest100/c 1"] = code1 + text1 + code2 + text2 + code3;
+                });
             }
-            else if (Context.IsMainPlayer)
-                singleModData.IsNotebookObtained = true;
+
+            if (e.NameWithoutLocale.IsEquivalentTo("Data/Events/ScienceHouse") && modConfig.WayToGetNotebook == "Events")
+            {
+                e.Edit(asset =>
+                {
+                    var editorDictionary = asset.AsDictionary<string, string>();
+                    string code1 = "continue/6 17/Robin 8 18 2 farmer 6 23 0 Demetrius 22 21 1/skippable/move farmer 0 -3 0 false/move farmer 2 0 0 false/emote Robin 16/pause 500/speak Robin \"";
+                    string code2 = "\"/emote farmer 40/pause 500/speak Robin \"";
+                    string code3 = "\"/pause 500/emote farmer 32/move farmer 11 0 1 false/viewport move 3 0 4000/pause 1300/speak Demetrius \"";
+                    string code4 = "\"/faceDirection Demetrius 3/emote Demetrius 16/pause 750/speak Demetrius \"";
+                    string code5 = "\"/emote farmer 40/pause 750/addObject 20 20 31/pause 1500/speak Demetrius \"";
+                    string code6 = "\"/emote farmer 60/removeObject 20 20 31/pause 250/faceDirection farmer 3/faceDirection Demetrius 1/move farmer -11 0 3 true/emote Demetrius 40/message \"";
+                    string code7 = "\"/end warpOut";
+
+                    string text1 = Helper.Translation.Get("CB.ObtainNotebook.Event_2-1");
+                    string text2 = Helper.Translation.Get("CB.ObtainNotebook.Event_2-2");
+                    string text3 = Helper.Translation.Get("CB.ObtainNotebook.Event_2-3");
+                    string text4 = Helper.Translation.Get("CB.ObtainNotebook.Event_2-4");
+                    string text5 = Helper.Translation.Get("CB.ObtainNotebook.Event_2-5");
+                    string text6 = Helper.Translation.Get("CB.ObtainNotebook.Event_2-6");
+
+                    editorDictionary.Data["70030005/e 70030004/i 31/H/t 0900 1700"] = code1 + text1 + code2 + text2 + code3 + text3 + code4 + text4 + code5 + text5 + code6 + text6 + code7;
+                });
+            }
+
         }
         private void OnSaving(object sender, SavingEventArgs e)
         {
@@ -366,6 +397,16 @@ namespace Creaturebook
                 }
             }
         }
+        private void OnDayStarted(object sender, DayStartedEventArgs e)
+        {
+            if (modConfig.WayToGetNotebook == "Inventory" && Context.IsMainPlayer && !singleModData.IsNotebookObtained)
+            {
+                Game1.player.addItemByMenuIfNecessary(new StardewValley.Object(31, 1, false));
+                singleModData.IsNotebookObtained = true;
+            }
+            else if (!Context.IsMainPlayer && !singleModData.IsNotebookObtained)
+                singleModData.IsNotebookObtained = true;
+        }
         private void OnPeerConnected(object sender, PeerConnectedEventArgs e)
         {
             if (Context.IsMainPlayer)
@@ -382,6 +423,17 @@ namespace Creaturebook
             else if (e.FromModID == ModManifest.UniqueID && e.Type == "long")
             {
                 hostPlayerID = e.ReadAs<long>();
+            }
+        }
+        private void OnWarped(object sender, WarpedEventArgs e)
+        {
+            if (e.Player.eventsSeen.Contains(70030004) && !singleModData.IsNotebookObtained)
+            {
+                if (modConfig.WayToGetNotebook == "Events" && Context.IsMainPlayer)
+                {
+                    Game1.player.addItemByMenuIfNecessary(new StardewValley.Object(31, 1, false));
+                    singleModData.IsNotebookObtained = true;
+                }
             }
         }
     }
