@@ -1,10 +1,27 @@
 {
 	"CB.Notebook.Item.Name": "Creature Notebook",
 	"CB.Notebook.Item.Desc": "Record all info on creatures you find into this notebook!",
+
+	"CB.Chapter": "Chapter ",
+	"CB.ChapterAuthorBy": "By ",
 	"CB.UnknownLabel": "Unknown Creature",
 	"CB.UnknownDesc": "You haven't discovered this creature yet.",
 	"CB.LatinName": "Scientific name: ",
 	"CB.dateDiscovered": "Date discovered: ",
+
 	"CB.discoveredHUDMessage": "Congrats! You've discovered a new creature: ", 
 	"CB.discoveredHUDMessage.Already": "You have already discovered this creature!",
+	
+	"CB.GMCM.ShowScientificNames.Name": "Show Scientific Names",
+	"CB.GMCM.ShowScientificNames.Desc": "Chooses whether to show creatures' scientific names or not.",
+	"CB.GMCM.ShowDiscoveryDates.Name": "Show Discovery Dates",
+	"CB.GMCM.ShowDiscoveryDates.Desc": "Chooses whether to show creatures' discovery dates or not. However, even if set false, the mod will save data for dates.",
+	"CB.GMCM.OpenMenuKeybind.Name": "Menu Opening Keybind",
+	"CB.GMCM.OpenMenuKeybind.Desc": "Keybind to open the menu.",
+	
+	"CB.GMCM.WayToGetNotebook.Name": "Way to obtain notebook",
+	"CB.GMCM.WayToGetNotebook.Desc": "Chooses which way you want to obtain the Creature Notebook. 'Letter' gets it sent to you via mail, 'Events' lets you find it via events, and 'Inventory' will spawn it into your inventory when a new save is created and it wont work for existing saves.",
+	"CB.GMCM.WayToGetNotebook.Options.1": "Letter",
+	"CB.GMCM.WayToGetNotebook.Options.2": "Events",
+	"CB.GMCM.WayToGetNotebook.Options.3": "Inventory"
 }

@@ -166,36 +166,36 @@ namespace Creaturebook
             // add some config options
             configMenu.AddBoolOption(
                 mod: ModManifest,
-                name: () => Helper.Translation.Get("CB.GMCM.ShowScientificNames.name"),
-                tooltip: () => Helper.Translation.Get("CB.GMCM.ShowScientificNames.desc"),
+                name: () => Helper.Translation.Get("CB.GMCM.ShowScientificNames.Name"),
+                tooltip: () => Helper.Translation.Get("CB.GMCM.ShowScientificNames.Desc"),
                 getValue: () => modConfig.ShowScientificNames,
                 setValue: value => modConfig.ShowScientificNames = value
             );
             
             configMenu.AddBoolOption(
                 mod: ModManifest,
-                name: () => Helper.Translation.Get("CB.GMCM.ShowDiscoveryDates.name"),
-                tooltip: () => Helper.Translation.Get("CB.GMCM.ShowDiscoveryDates.desc"),
+                name: () => Helper.Translation.Get("CB.GMCM.ShowDiscoveryDates.Name"),
+                tooltip: () => Helper.Translation.Get("CB.GMCM.ShowDiscoveryDates.Desc"),
                 getValue: () => modConfig.ShowDiscoveryDates,
                 setValue: value => modConfig.ShowDiscoveryDates = value
             );
 
             configMenu.AddKeybindList(
                 mod: ModManifest, 
-                name: () => Helper.Translation.Get("CB.GMCM.OpenMenuKeybind.name"),
-                tooltip: () => Helper.Translation.Get("CB.GMCM.OpenMenuKeybind.desc"),
+                name: () => Helper.Translation.Get("CB.GMCM.OpenMenuKeybind.Name"),
+                tooltip: () => Helper.Translation.Get("CB.GMCM.OpenMenuKeybind.Desc"),
                 getValue: () => modConfig.OpenMenuKeybind,
                 setValue: value => modConfig.OpenMenuKeybind = value
             );
           
-            string Option1 = Helper.Translation.Get("CB.GMCM.WayToGetNotebook.options.1");
-            string Option2 = Helper.Translation.Get("CB.GMCM.WayToGetNotebook.options.2");
-            string Option3 = Helper.Translation.Get("CB.GMCM.WayToGetNotebook.options.3");
+            string Option1 = Helper.Translation.Get("CB.GMCM.WayToGetNotebook.Options.1");
+            string Option2 = Helper.Translation.Get("CB.GMCM.WayToGetNotebook.Options.2");
+            string Option3 = Helper.Translation.Get("CB.GMCM.WayToGetNotebook.Options.3");
             
             configMenu.AddTextOption(
                 mod: ModManifest,
-                name: () => Helper.Translation.Get("CB.GMCM.WayToGetNotebook.name"),
-                tooltip: () => Helper.Translation.Get("CB.GMCM.WayToGetNotebook.desc"),
+                name: () => Helper.Translation.Get("CB.GMCM.WayToGetNotebook.Name"),
+                tooltip: () => Helper.Translation.Get("CB.GMCM.WayToGetNotebook.Desc"),
                 getValue: () => modConfig.WayToGetNotebook,
                 setValue: value => modConfig.WayToGetNotebook = value,
                 allowedValues: new string[] { Option1, Option2, Option3 }
