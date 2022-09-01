@@ -19,13 +19,10 @@ namespace Creaturebook
         public int currentID = 0;
         public int actualID = 0;
         public int currentChapter = 0;
-        static int lastAmount = 0;
-        public List<int> amountList = new List<int>();
 
         static string convertedID;
         static string fullCreatureID;
         static string modID;
-
 
         TextBox textBox;
 
@@ -55,11 +52,6 @@ namespace Creaturebook
         Texture2D[] MenuTextures;
         public NotebookMenu()
         {
-            for (int i = 0; i < ModEntry.chapterModels.Count; i++)
-            {
-                amountList.Add(ModEntry.chapterModels[i].CreatureAmount);
-            }
-
             NotebookTexture = ModEntry.Helper.GameContent.Load<Texture2D>(Path.Combine("Mods", "KediDili.Creaturebook", "NotebookTexture"));
             CreatureTexture = ModEntry.newCreatures[actualID].Image_1;
             ButtonTexture = ModEntry.Helper.GameContent.Load<Texture2D>(Path.Combine("Mods", "KediDili.Creaturebook", "SearchButton"));
@@ -226,24 +218,80 @@ namespace Creaturebook
                         currentID = Convert.ToInt32(sender.Text);
                         willSearch = false;
                         textBox.Text = "";
-                        for (int i = 0; i < length; i++)
+                        if (currentChapter is 0 && currentID != 0)
                         {
-
+                            actualID = currentID;
                         }
-                        actualID = amountList[currentChapter] + currentID;
+                        else if (currentChapter is 0 && currentID == 0)
+                        {
+                            actualID = 0;
+                        }
+                        else
+                        {
+                            actualID = 0;
+                            for (int i = 0; i < currentChapter-1; i++)
+                            {
+                                actualID += ModEntry.chapterModels[i].CreatureAmount;
+                            }
+                            actualID += currentID + ModEntry.chapterModels.Count-1;
+                        }
                         updateNotebookPage();
                     }
                 }
                 else if (!int.TryParse(sender.Text, out result))
                 {
-                    for (int i = 0; i < ModEntry.chapterModels[currentChapter].CreatureAmount; i++)
+                    foreach (var item in ModEntry.newCreatures)
                     {
-                        if (ModEntry.newCreatures[i].LatinName == sender.Text || ModEntry.newCreatures[i].Name == sender.Text)
+                        if (item.LatinName is not null or "")
                         {
-                            currentID = i;
+                            if (item.LatinName.StartsWith(sender.Text, StringComparison.OrdinalIgnoreCase))
+                            {
+                                currentID = item.ID;
+                                willSearch = false;
+                                textBox.Text = "";
+                                if (currentChapter is 0 && currentID != 0)
+                                {
+                                    actualID = currentID;
+                                }
+                                else if (currentChapter is 0 && currentID == 0)
+                                {
+                                    actualID = 0;
+                                }
+                                else if (currentChapter > 0 && currentID > 0)
+                                {
+                                    actualID = 0;
+                                    for (int a = 0; a < currentChapter - 1; a++)
+                                    {
+                                        actualID += ModEntry.chapterModels[a].CreatureAmount;
+                                    }
+                                    actualID += currentID + ModEntry.chapterModels.Count -1;
+                                }
+                                updateNotebookPage();
+                                break;
+                            }
+                        }
+                        if (item.Name.StartsWith(sender.Text, StringComparison.OrdinalIgnoreCase))
+                        {
+                            currentID = item.ID;
                             willSearch = false;
                             textBox.Text = "";
-                            actualID = amountList[currentChapter] + currentID;
+                            if (currentChapter is 0 && currentID != 0)
+                            {
+                                actualID = currentID;
+                            }
+                            else if (currentChapter is 0 && currentID == 0)
+                            {
+                                actualID = 0;
+                            }
+                            else if (currentChapter > 0 && currentID > 0)
+                            {
+                                actualID = 0;
+                                for (int a = 0; a < currentChapter - 1; a++)
+                                {
+                                    actualID += ModEntry.chapterModels[a].CreatureAmount;
+                                }
+                                actualID += currentID + ModEntry.chapterModels.Count - 1;
+                            }
                             updateNotebookPage();
                             break;
                         }

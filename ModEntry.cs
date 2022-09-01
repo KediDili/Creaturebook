@@ -317,11 +317,7 @@ namespace Creaturebook
                 ModData c = Helper.Data.ReadSaveData<ModData>("KediDili.Creaturebook-DiscoveryProgress");
                 List<string> s = Helper.Data.ReadSaveData<List<string>>("KediDili.Creaturebook-PreviouslyDownloadedPacks");
 
-                if (c == singleModData)
-                {
-                    return;
-                }
-                if (s != null)
+                if (s != null && c != null)
                 {
                     foreach (string item in s)
                     {
@@ -350,15 +346,11 @@ namespace Creaturebook
                 }
                 foreach (Creature creature in newCreatures)
                 {
-                    for (int i = 0; i < chapterModels.Count; i++)
+                    if (!singleModData.DiscoveryDates.ContainsKey(creature.FromContentPack + "." + creature.Prefix + "_" + Convert.ToString(creature.ID)))
                     {
-                        if (!singleModData.DiscoveryDates.ContainsKey(creature.FromContentPack + "." + creature.Prefix + "_" + Convert.ToString(creature.ID)))
-                        {
-                            singleModData.DiscoveryDates.Add(creature.FromContentPack + "." + creature.Prefix + "_" + creature.ID, null);
-                        }
+                        singleModData.DiscoveryDates.Add(creature.FromContentPack + "." + creature.Prefix + "_" + creature.ID, null);
                     }
                 }
-                
             }
             if (Context.IsMultiplayer)
             {
