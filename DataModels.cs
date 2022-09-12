@@ -30,7 +30,7 @@ namespace Creaturebook
     {
         public int CreatureID { get; set; }
         public bool HasExtraImages { get; set; } = false;
-        public bool HasScientificName { get; set; } = true;
+        public bool HasScientificName { get; set; } = false;
         public bool HasFunFact { get; set; } = true;
         public string ScientificName { get; set; }
         public float ImageScale_1 { get; set; } = 1f;
@@ -42,6 +42,9 @@ namespace Creaturebook
         public int OffsetY { get; set; } = 0;
         public int OffsetY_2 { get; set; } = 0;
         public int OffsetY_3 { get; set; } = 0;
+        public string OverrideDefaultNaming { get; set; } = "";
+
+       
     }
     public class Creature
     {
@@ -63,5 +66,8 @@ namespace Creaturebook
         public int OffsetY { get; set; } = 0;
         public int OffsetY_2 { get; set; } = 0;
         public int OffsetY_3 { get; set; } = 0;
+        public string OverrideDefaultNaming { get; set; } = "";
+
+        public DirectoryInfo directory { get; set; } = new DirectoryInfo(System.IO.Directory.GetCurrentDirectory());
     }
 }
