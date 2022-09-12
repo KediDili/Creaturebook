@@ -22,17 +22,12 @@ namespace Creaturebook
 
     public class ModEntry : Mod
     {
-        string ContentPackPath(string a)
-        {
-            return a;
-        }
-
         internal static IModHelper Helper;
 
         public List<string> uniqueModIDs = new List<string>();
 
         internal static ModConfig modConfig = new ModConfig();
-        ChapterModel chapterData = new ChapterModel();
+        List<ChapterModel> chapterData = new List<ChapterModel>();
         CreatureModel creatureData = new CreatureModel();
         Creature sortedOutCreature = new Creature();
         internal static ModData singleModData = new ModData();
@@ -67,98 +62,101 @@ namespace Creaturebook
             foreach (IContentPack contentPack in Helper.ContentPacks.GetOwned())
             {
                 Monitor.Log($"Reading content pack: {contentPack.Manifest.Name}, v{contentPack.Manifest.Version}");
-
+                chapterData = new List<ChapterModel>();
                 if (!contentPack.HasFile("chapter.json"))
                 {
                     Monitor.Log($"{contentPack.Manifest.Name} seems to lack the 'chapter.json' file that is required. If you're the author please add the file or check your spelling in the filename, if you're a simple player please let the content pack author know of this error or reinstall the content pack. (If you read this at all, that is.)", LogLevel.Error);
                     continue;
                 }
-                chapterData = contentPack.ReadJsonFile<ChapterModel>("chapter.json");
+                chapterData = contentPack.ReadJsonFile<List<ChapterModel>>("chapter.json");
 
                 if (chapterData == null)
                 {
                     Monitor.Log($"{contentPack.Manifest.Name} seems to have the 'chapter.json', but it's empty. If I just wanted a null value I'd not ask for the file at all, right?", LogLevel.Warn);
                     continue;
                 }
-                string title = chapterData.ChapterTitle;
-
-                var subfolders = new DirectoryInfo(Path.Combine(contentPack.DirectoryPath, title)).GetDirectories();
-
-                if (chapterData.CreatureAmount != subfolders.Length)
+                foreach (var chapter in chapterData)
                 {
-                    Monitor.Log($"{contentPack.Manifest.Name} seems to have a different number of creatures than specified in 'chapter.json'! Yes, of course it matters. Numbers don't calculate themselves!", LogLevel.Warn);
-                    continue;
-                }
-                else if (subfolders.Length == 0)
-                {
-                    Monitor.Log($"{contentPack.Manifest.Name} doesn't seem to have any creatures at all! O.o", LogLevel.Warn);
-                    continue;
-                }
-                chapterModels.Add(chapterData);
+                    string title = chapter.ChapterTitle;
 
-                foreach (var subfolder in subfolders)
-                {
-                    if (!File.Exists(Path.Combine(subfolder.FullName, "creature.json")))
-                    {
-                        Monitor.Log($"{contentPack.Manifest.Name} seems to lack a 'creature.json' under {subfolder.Name}. So add it or tell the author to.", LogLevel.Warn);
-                        break;
-                    }
-                    creatureData = contentPack.ReadJsonFile<CreatureModel>(Path.Combine(subfolder.Parent.Name, subfolder.Name, "creature.json"));
+                    var subfolders = new DirectoryInfo(Path.Combine(contentPack.DirectoryPath, title)).GetDirectories();
 
-                    if (creatureData == null)
+                    if (chapter.CreatureAmount != subfolders.Length)
                     {
-                        Monitor.Log($"{contentPack.Manifest.Name} seems to have the 'creature.json', under {subfolder.Name} but it's empty.", LogLevel.Warn);
-                        break;
-                    }
-
-                    if (!File.Exists(Path.Combine(subfolder.FullName, "book-image.png")))
-                    {
-                        Monitor.Log($"{contentPack.Manifest.Name} seems to lack a 'book-image.png' under {subfolder.Name}. So add it or tell the author.", LogLevel.Warn);
+                        Monitor.Log($"{contentPack.Manifest.Name} seems to have a different number of creatures than specified in 'chapter.json'! Yes, of course it matters. Numbers don't calculate themselves!", LogLevel.Warn);
                         continue;
                     }
-                    sortedOutCreature = new Creature();
-                    sortedOutCreature.Image_1 = contentPack.ModContent.Load<Texture2D>(PathUtilities.NormalizeAssetName(Path.Combine(subfolder.Parent.Name, subfolder.Name, "book-image.png")));
-                    sortedOutCreature.ID = creatureData.CreatureID;
-                    sortedOutCreature.LatinName = creatureData.ScientificName;
-                    sortedOutCreature.Prefix = chapterData.CreatureNamePrefix;
-                    sortedOutCreature.Name = contentPack.Translation.Get(chapterData.CreatureNamePrefix + "_" + sortedOutCreature.ID + "_name");
-                    sortedOutCreature.Desc = contentPack.Translation.Get(chapterData.CreatureNamePrefix + "_" + sortedOutCreature.ID + "_desc");
-                    sortedOutCreature.FromContentPack = contentPack.Manifest.UniqueID;
-                    sortedOutCreature.Scale_1 = creatureData.ImageScale_1;
-                    sortedOutCreature.OffsetX = creatureData.OffsetX;
-                    sortedOutCreature.OffsetY = creatureData.OffsetY;
-                    if (!File.Exists(Path.Combine(subfolder.FullName, "book-image_2.png")) && creatureData.HasExtraImages)
+                    else if (subfolders.Length == 0)
                     {
-                        Monitor.Log($"{contentPack.Manifest.Name} seems to lack a 'book-image_2.png' under {subfolder.Name}.", LogLevel.Warn);
+                        Monitor.Log($"{contentPack.Manifest.Name} doesn't seem to have any creatures at all! O.o", LogLevel.Warn);
                         continue;
                     }
-                    else if (File.Exists(Path.Combine(subfolder.FullName, "book-image_2.png")) && creatureData.HasExtraImages)
-                    {
-                        sortedOutCreature.Image_2 = contentPack.ModContent.Load<Texture2D>(PathUtilities.NormalizeAssetName(Path.Combine(subfolder.Parent.Name, subfolder.Name, "book-image-2.png")));
-                        sortedOutCreature.Scale_2 = creatureData.ImageScale_2;
-                        sortedOutCreature.OffsetX_2 = creatureData.OffsetX_2;
-                        sortedOutCreature.OffsetY_2 = creatureData.OffsetY_2;
-                    }
+                    chapterModels.Add(chapter);
 
-                    if (File.Exists(Path.Combine(subfolder.Name, "book-image_3.png")) && creatureData.HasExtraImages)
+                    foreach (var subfolder in subfolders)
                     {
-                        sortedOutCreature.Image_3 = contentPack.ModContent.Load<Texture2D>(PathUtilities.NormalizeAssetName(Path.Combine(subfolder.Parent.Name, subfolder.Name, "book-image-3.png")));
-                        sortedOutCreature.Scale_3 = creatureData.ImageScale_3;
-                        sortedOutCreature.OffsetX_3 = creatureData.OffsetX_3;
-                        sortedOutCreature.OffsetY_3 = creatureData.OffsetY_3;
+                        if (!File.Exists(Path.Combine(subfolder.FullName, "creature.json")))
+                        {
+                            Monitor.Log($"{contentPack.Manifest.Name} seems to lack a 'creature.json' under {subfolder.Name}. So add it or tell the author to.", LogLevel.Warn);
+                            break;
+                        }
+                        creatureData = contentPack.ReadJsonFile<CreatureModel>(Path.Combine(subfolder.Parent.Name, subfolder.Name, "creature.json"));
+
+                        if (creatureData == null)
+                        {
+                            Monitor.Log($"{contentPack.Manifest.Name} seems to have the 'creature.json', under {subfolder.Name} but it's empty.", LogLevel.Warn);
+                            break;
+                        }
+
+                        if (!File.Exists(Path.Combine(subfolder.FullName, "book-image.png")))
+                        {
+                            Monitor.Log($"{contentPack.Manifest.Name} seems to lack a 'book-image.png' under {subfolder.Name}. So add it or tell the author.", LogLevel.Warn);
+                            continue;
+                        }
+                        sortedOutCreature = new Creature();
+                        sortedOutCreature.Image_1 = contentPack.ModContent.Load<Texture2D>(PathUtilities.NormalizeAssetName(Path.Combine(subfolder.Parent.Name, subfolder.Name, "book-image.png")));
+                        sortedOutCreature.ID = creatureData.CreatureID;
+                        sortedOutCreature.LatinName = creatureData.ScientificName;
+                        sortedOutCreature.Prefix = chapter.CreatureNamePrefix;
+                        sortedOutCreature.Name = contentPack.Translation.Get(chapter.CreatureNamePrefix + "_" + sortedOutCreature.ID + "_name");
+                        sortedOutCreature.Desc = contentPack.Translation.Get(chapter.CreatureNamePrefix + "_" + sortedOutCreature.ID + "_desc");
+                        sortedOutCreature.FromContentPack = contentPack;
+                        sortedOutCreature.Scale_1 = creatureData.ImageScale_1;
+                        sortedOutCreature.OffsetX = creatureData.OffsetX;
+                        sortedOutCreature.OffsetY = creatureData.OffsetY;
+                        if (!File.Exists(Path.Combine(subfolder.FullName, "book-image_2.png")) && creatureData.HasExtraImages)
+                        {
+                            Monitor.Log($"{contentPack.Manifest.Name} seems to lack a 'book-image_2.png' under {subfolder.Name}.", LogLevel.Warn);
+                            continue;
+                        }
+                        else if (File.Exists(Path.Combine(subfolder.FullName, "book-image_2.png")) && creatureData.HasExtraImages)
+                        {
+                            sortedOutCreature.Image_2 = contentPack.ModContent.Load<Texture2D>(PathUtilities.NormalizeAssetName(Path.Combine(subfolder.Parent.Name, subfolder.Name, "book-image-2.png")));
+                            sortedOutCreature.Scale_2 = creatureData.ImageScale_2;
+                            sortedOutCreature.OffsetX_2 = creatureData.OffsetX_2;
+                            sortedOutCreature.OffsetY_2 = creatureData.OffsetY_2;
+                        }
+
+                        if (File.Exists(Path.Combine(subfolder.Name, "book-image_3.png")) && creatureData.HasExtraImages)
+                        {
+                            sortedOutCreature.Image_3 = contentPack.ModContent.Load<Texture2D>(PathUtilities.NormalizeAssetName(Path.Combine(subfolder.Parent.Name, subfolder.Name, "book-image-3.png")));
+                            sortedOutCreature.Scale_3 = creatureData.ImageScale_3;
+                            sortedOutCreature.OffsetX_3 = creatureData.OffsetX_3;
+                            sortedOutCreature.OffsetY_3 = creatureData.OffsetY_3;
+                        }
+                        if (creatureData.OverrideDefaultNaming != "" || creatureData.OverrideDefaultNaming != null)
+                        {
+                            sortedOutCreature.OverrideDefaultNaming = creatureData.OverrideDefaultNaming;
+                        }
+                        creatures.Add(sortedOutCreature);
+                        sortedOutCreature.directory = subfolder;
                     }
-                    if (creatureData.OverrideDefaultNaming != "" || creatureData.OverrideDefaultNaming != null)
-                    {
-                        sortedOutCreature.OverrideDefaultNaming = creatureData.OverrideDefaultNaming;
-                    }
-                    creatures.Add(sortedOutCreature);
-                    sortedOutCreature.directory = subfolder;
+                    chapterData = new List<ChapterModel>();
+                    uniqueModIDs.Add(contentPack.Manifest.UniqueID);
+                    List<Creature> orderFirst = creatures.OrderBy(o => o.ID).ToList();
+                    newCreatures.AddRange(orderFirst);
+                    creatures.Clear();
                 }
-                chapterData = new ChapterModel();
-                uniqueModIDs.Add(contentPack.Manifest.UniqueID);
-                List<Creature> orderFirst = creatures.OrderBy(o => o.ID).ToList();
-                newCreatures.AddRange(orderFirst);
-                creatures.Clear();
             }
             Monitor.Log($"All content packs have been found, cleaned from invalid files and added into the Creaturebook!", LogLevel.Info);
 
@@ -328,37 +326,37 @@ namespace Creaturebook
             
             foreach (var item in newCreatures)
             {
-                if (e.Name.IsEquivalentTo(Path.Combine("KediDili.Creaturebook", item.FromContentPack + "." + item.Prefix + "_" + item.ID +"_Image1")))
+                if (e.Name.IsEquivalentTo(Path.Combine("KediDili.Creaturebook", item.FromContentPack + "." + item.Prefix + "_" + item.ID + "_Image1")))
                 {
-                    string a()
+                    Texture2D a()
                     {
-                        return PathUtilities.NormalizeAssetName(item.directory.FullName + "\\book-image.png");
+                        return item.FromContentPack.ModContent.Load<Texture2D>(PathUtilities.NormalizeAssetName(item.directory.FullName + "\\book-image.png"));
                     }
-                    e.LoadFrom((Func<string>)a, AssetLoadPriority.Medium, onBehalfOf: item.FromContentPack);
-                    Helper.ModContent.Load<Texture2D>(PathUtilities.NormalizeAssetName(item.directory.FullName + "\\book-image.png"));
+                    e.LoadFrom(a, AssetLoadPriority.Medium, onBehalfOf: item.FromContentPack.Manifest.UniqueID);
+                    break;
                 }
                 if (e.Name.IsEquivalentTo(Path.Combine("KediDili.Creaturebook", item.FromContentPack + "." + item.Prefix + "_" + item.ID + "_Image2")))
                 {
                     if (item.Image_2 != null)
                     {
-                        string a()
+                        Texture2D a()
                         {
-                            return PathUtilities.NormalizeAssetName(item.directory.FullName + "\\book-image_2.png");
+                            return item.FromContentPack.ModContent.Load<Texture2D>(PathUtilities.NormalizeAssetName(item.directory.FullName + "\\book-image_2.png"));
                         }
-                        e.LoadFrom((Func<string>)a, AssetLoadPriority.Medium, onBehalfOf: item.FromContentPack);
-                        Helper.ModContent.Load<Texture2D>(PathUtilities.NormalizeAssetName(item.directory.FullName + "\\book-image_2.png"));
+                        e.LoadFrom(a, AssetLoadPriority.Medium, onBehalfOf: item.FromContentPack.Manifest.UniqueID);
+                        break;
                     }
                 }
                 if (e.Name.IsEquivalentTo(Path.Combine("KediDili.Creaturebook", item.FromContentPack + "." + item.Prefix + "_" + item.ID + "_Image3")))
                 {
                     if (item.Image_3 != null)
                     {
-                        string a()
+                        Texture2D a()
                         {
-                            return PathUtilities.NormalizeAssetName(item.directory.FullName + "\\book-image.png_3");
+                            return item.FromContentPack.ModContent.Load<Texture2D>(PathUtilities.NormalizeAssetName(item.directory.FullName + "\\book-image_3.png"));
                         }
-                        e.LoadFrom((Func<string>)a, AssetLoadPriority.Medium, onBehalfOf: item.FromContentPack);
-                        Helper.ModContent.Load<Texture2D>(PathUtilities.NormalizeAssetName(item.directory.FullName + "\\book-image_33.png"));
+                        e.LoadFrom(a, AssetLoadPriority.Medium, onBehalfOf: item.FromContentPack.Manifest.UniqueID);
+                        break;
                     }
                 }
             }

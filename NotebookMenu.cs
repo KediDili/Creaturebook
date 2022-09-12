@@ -398,7 +398,7 @@ namespace Creaturebook
         {
             convertedID = Convert.ToString(currentID);
             fullCreatureID = ModEntry.chapterModels[currentChapter].CreatureNamePrefix + "_" + convertedID;
-            modID = ModEntry.newCreatures[actualID].FromContentPack;
+            modID = ModEntry.newCreatures[actualID].FromContentPack.Manifest.UniqueID;
             menuTexts[2] = ModEntry.newCreatures[actualID].Name;
             menuTexts[1] = ModEntry.newCreatures[actualID].Desc;
             CreatureTexture = ModEntry.Helper.GameContent.Load<Texture2D>(Path.Combine("KediDili.Creaturebook", ModEntry.newCreatures[actualID].FromContentPack + "." + ModEntry.chapterModels[currentChapter].CreatureNamePrefix + "_" + ModEntry.newCreatures[actualID].ID + "_Image1"));

@@ -56,7 +56,7 @@ namespace Creaturebook
         public string Name { get; set; }
         public string Prefix { get; set; }
         public string LatinName { get; set; } = null;
-        public string FromContentPack { get; set; }
+        public IContentPack FromContentPack { get; set; }
         public float Scale_1 { get; set; } = 1f;
         public float Scale_2 { get; set; } = 1f;
         public float Scale_3 { get; set; } = 1f;
@@ -67,7 +67,6 @@ namespace Creaturebook
         public int OffsetY_2 { get; set; } = 0;
         public int OffsetY_3 { get; set; } = 0;
         public string OverrideDefaultNaming { get; set; } = "";
-
         public DirectoryInfo directory { get; set; } = new DirectoryInfo(System.IO.Directory.GetCurrentDirectory());
     }
 }
