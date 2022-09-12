@@ -154,3 +154,10 @@ Value type: ``float``
 Is it required: Only if the creature has a ``book-image_3.png``
 Notes:  Does the same thing with ``ImageScale_1``, but for ``book-image_3.png``.
 Example: ``"ImageScale_3": 4``
+
+-``OverrideDefaultNaming``
+
+Value type: ``string``
+Is it required: No
+Notes: This is used if you want your creature to be found by clicking an NPC-in-game-code that has a different internal name than how does Creaturebook names creatures internally.
+Example: ``"OverrideDefaultNaming": "Mr.Qi"``
