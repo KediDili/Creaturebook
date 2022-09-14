@@ -34,7 +34,7 @@ namespace Creaturebook
             {
                 foreach (var date in ModEntry.singleModData.DiscoveryDates)
                 {
-                    foreach (var item in ModEntry.newCreatures)
+                    foreach (var item in ModEntry.creatures)
                     {
                         if (item.Prefix == b && date.Value != null)
                         {
@@ -60,7 +60,7 @@ namespace Creaturebook
             {
                 foreach (var date in ModEntry.singleModData.DiscoveryDates)
                 {
-                    foreach (var item in ModEntry.newCreatures)
+                    foreach (var item in ModEntry.creatures)
                     {
                         if (item.Prefix == input && date.Value != null)
                         {
@@ -81,7 +81,7 @@ namespace Creaturebook
     }
     internal class IsCreatureDiscovered 
     {
-        private string FullID = ModEntry.chapterModels[0].CreatureNamePrefix + "_" + ModEntry.newCreatures[0].ID.ToString();
+        private string FullID = ModEntry.chapterModels[0].CreatureNamePrefix + "_" + ModEntry.creatures[0].ID.ToString();
         private bool a;
         private bool b;
 
@@ -105,7 +105,7 @@ namespace Creaturebook
             {
                 foreach (var date in ModEntry.singleModData.DiscoveryDates)
                 {
-                    foreach (var item in ModEntry.newCreatures)
+                    foreach (var item in ModEntry.creatures)
                     {
                         if (item.Prefix == FullID && date.Value != null)
                         {
@@ -129,7 +129,7 @@ namespace Creaturebook
             {
                 foreach (var date in ModEntry.singleModData.DiscoveryDates)
                 {
-                    foreach (var item in ModEntry.newCreatures)
+                    foreach (var item in ModEntry.creatures)
                     {
                         if (item.Prefix == FullID && date.Value != null)
                         {

@@ -8,7 +8,6 @@ using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewModdingAPI.Utilities;
 using StardewValley;
-using Netcode;
 
 namespace Creaturebook
 {
@@ -27,16 +26,13 @@ namespace Creaturebook
         public List<string> uniqueModIDs = new List<string>();
 
         internal static ModConfig modConfig = new ModConfig();
-        List<ChapterModel> chapterData = new List<ChapterModel>();
-        CreatureModel creatureData = new CreatureModel();
-        Creature sortedOutCreature = new Creature();
+        List<Chapter> chapterData = new List<Chapter>();
+        Creature creatureData = new Creature();
         internal static ModData singleModData = new ModData();
+        internal static List<Chapter> chapterModels = new List<Chapter>();
+        internal static List<Creature> creatures = new List<Creature>();
+        internal static List<string> setsList = new List<string>();
 
-        internal List<DirectoryInfo> directoryInfos = new List<DirectoryInfo>();
-
-        internal static List<ChapterModel> chapterModels = new List<ChapterModel>();
-        static List<Creature> creatures = new List<Creature>();
-        internal static List<Creature> newCreatures = new List<Creature>();
         internal static ModData PeermodData = new ModData();
         internal long hostPlayerID;
 
@@ -62,13 +58,13 @@ namespace Creaturebook
             foreach (IContentPack contentPack in Helper.ContentPacks.GetOwned())
             {
                 Monitor.Log($"Reading content pack: {contentPack.Manifest.Name}, v{contentPack.Manifest.Version}");
-                chapterData = new List<ChapterModel>();
+                chapterData = new List<Chapter>();
                 if (!contentPack.HasFile("chapter.json"))
                 {
                     Monitor.Log($"{contentPack.Manifest.Name} seems to lack the 'chapter.json' file that is required. If you're the author please add the file or check your spelling in the filename, if you're a simple player please let the content pack author know of this error or reinstall the content pack. (If you read this at all, that is.)", LogLevel.Error);
                     continue;
                 }
-                chapterData = contentPack.ReadJsonFile<List<ChapterModel>>("chapter.json");
+                chapterData = contentPack.ReadJsonFile<List<Chapter>>("chapter.json");
 
                 if (chapterData == null)
                 {
@@ -80,7 +76,7 @@ namespace Creaturebook
                     string title = chapter.ChapterTitle;
 
                     var subfolders = new DirectoryInfo(Path.Combine(contentPack.DirectoryPath, title)).GetDirectories();
-
+                    List<Creature> newCreatures = new List<Creature>();
                     if (chapter.CreatureAmount != subfolders.Length)
                     {
                         Monitor.Log($"{contentPack.Manifest.Name} seems to have a different number of creatures than specified in 'chapter.json'! Yes, of course it matters. Numbers don't calculate themselves!", LogLevel.Warn);
@@ -91,7 +87,6 @@ namespace Creaturebook
                         Monitor.Log($"{contentPack.Manifest.Name} doesn't seem to have any creatures at all! O.o", LogLevel.Warn);
                         continue;
                     }
-                    chapterModels.Add(chapter);
 
                     foreach (var subfolder in subfolders)
                     {
@@ -100,8 +95,7 @@ namespace Creaturebook
                             Monitor.Log($"{contentPack.Manifest.Name} seems to lack a 'creature.json' under {subfolder.Name}. So add it or tell the author to.", LogLevel.Warn);
                             break;
                         }
-                        creatureData = contentPack.ReadJsonFile<CreatureModel>(Path.Combine(subfolder.Parent.Name, subfolder.Name, "creature.json"));
-
+                        creatureData = contentPack.ReadJsonFile<Creature>(Path.Combine(subfolder.Parent.Name, subfolder.Name, "creature.json"));
                         if (creatureData == null)
                         {
                             Monitor.Log($"{contentPack.Manifest.Name} seems to have the 'creature.json', under {subfolder.Name} but it's empty.", LogLevel.Warn);
@@ -111,52 +105,48 @@ namespace Creaturebook
                         if (!File.Exists(Path.Combine(subfolder.FullName, "book-image.png")))
                         {
                             Monitor.Log($"{contentPack.Manifest.Name} seems to lack a 'book-image.png' under {subfolder.Name}. So add it or tell the author.", LogLevel.Warn);
-                            continue;
+                            break;
                         }
-                        sortedOutCreature = new Creature();
-                        sortedOutCreature.Image_1 = contentPack.ModContent.Load<Texture2D>(PathUtilities.NormalizeAssetName(Path.Combine(subfolder.Parent.Name, subfolder.Name, "book-image.png")));
-                        sortedOutCreature.ID = creatureData.CreatureID;
-                        sortedOutCreature.LatinName = creatureData.ScientificName;
-                        sortedOutCreature.Prefix = chapter.CreatureNamePrefix;
-                        sortedOutCreature.Name = contentPack.Translation.Get(chapter.CreatureNamePrefix + "_" + sortedOutCreature.ID + "_name");
-                        sortedOutCreature.Desc = contentPack.Translation.Get(chapter.CreatureNamePrefix + "_" + sortedOutCreature.ID + "_desc");
-                        sortedOutCreature.FromContentPack = contentPack;
-                        sortedOutCreature.Scale_1 = creatureData.ImageScale_1;
-                        sortedOutCreature.OffsetX = creatureData.OffsetX;
-                        sortedOutCreature.OffsetY = creatureData.OffsetY;
+                        creatureData.Prefix = chapter.CreatureNamePrefix;
+                        creatureData.Name = contentPack.Translation.Get(chapter.CreatureNamePrefix + "_" + creatureData.ID + "_name");
+                        creatureData.Desc = contentPack.Translation.Get(chapter.CreatureNamePrefix + "_" + creatureData.ID + "_desc");
+                        creatureData.FromContentPack = contentPack;
                         if (!File.Exists(Path.Combine(subfolder.FullName, "book-image_2.png")) && creatureData.HasExtraImages)
                         {
                             Monitor.Log($"{contentPack.Manifest.Name} seems to lack a 'book-image_2.png' under {subfolder.Name}.", LogLevel.Warn);
-                            continue;
+                            break;
                         }
-                        else if (File.Exists(Path.Combine(subfolder.FullName, "book-image_2.png")) && creatureData.HasExtraImages)
-                        {
-                            sortedOutCreature.Image_2 = contentPack.ModContent.Load<Texture2D>(PathUtilities.NormalizeAssetName(Path.Combine(subfolder.Parent.Name, subfolder.Name, "book-image-2.png")));
-                            sortedOutCreature.Scale_2 = creatureData.ImageScale_2;
-                            sortedOutCreature.OffsetX_2 = creatureData.OffsetX_2;
-                            sortedOutCreature.OffsetY_2 = creatureData.OffsetY_2;
-                        }
-
-                        if (File.Exists(Path.Combine(subfolder.Name, "book-image_3.png")) && creatureData.HasExtraImages)
-                        {
-                            sortedOutCreature.Image_3 = contentPack.ModContent.Load<Texture2D>(PathUtilities.NormalizeAssetName(Path.Combine(subfolder.Parent.Name, subfolder.Name, "book-image-3.png")));
-                            sortedOutCreature.Scale_3 = creatureData.ImageScale_3;
-                            sortedOutCreature.OffsetX_3 = creatureData.OffsetX_3;
-                            sortedOutCreature.OffsetY_3 = creatureData.OffsetY_3;
-                        }
-                        if (creatureData.OverrideDefaultNaming != "" || creatureData.OverrideDefaultNaming != null)
-                        {
-                            sortedOutCreature.OverrideDefaultNaming = creatureData.OverrideDefaultNaming;
-                        }
-                        creatures.Add(sortedOutCreature);
-                        sortedOutCreature.directory = subfolder;
+                        creatureData.directory = PathUtilities.NormalizePath(subfolder.FullName);
+                        newCreatures.Add(creatureData);
                     }
-                    chapterData = new List<ChapterModel>();
-                    uniqueModIDs.Add(contentPack.Manifest.UniqueID);
-                    List<Creature> orderFirst = creatures.OrderBy(o => o.ID).ToList();
-                    newCreatures.AddRange(orderFirst);
-                    creatures.Clear();
+                    creatures.AddRange(newCreatures.OrderBy(o => o.ID).ToList());
+                    newCreatures = new List<Creature>();
+                    chapterModels.Add(chapter);
+                    if (chapter.EnableSets)
+                    {
+                        foreach (var item in creatures)
+                        {
+                            if (!chapter.setsAndIDs.ContainsKey(creatureData.BelongsToSet))
+                            {
+                                chapter.setsAndIDs.Add(item.BelongsToSet, Convert.ToString(item.ID));
+                            }
+                            else
+                            {
+                                chapter.setsAndIDs[item.BelongsToSet] += "-" + Convert.ToString(item.ID);
+                                int lastOccurence;
+                                int firstOccurence;
+                                string first = "";
+                                string last = "";
+                                lastOccurence = chapter.setsAndIDs[item.BelongsToSet].LastIndexOf('-');
+                                firstOccurence = chapter.setsAndIDs[item.BelongsToSet].IndexOf('-');
+                                first = chapter.setsAndIDs[item.BelongsToSet].Substring(lastOccurence);
+                                last = chapter.setsAndIDs[item.BelongsToSet].Substring(firstOccurence);
+                                chapter.setsAndIDs[item.BelongsToSet] = first + "-" + last;
+                            }
+                        }
+                    }
                 }
+                uniqueModIDs.Add(contentPack.Manifest.UniqueID);
             }
             Monitor.Log($"All content packs have been found, cleaned from invalid files and added into the Creaturebook!", LogLevel.Info);
 
@@ -184,11 +174,6 @@ namespace Creaturebook
                 if (Context.IsWorldReady)
                     return new[] { Convert.ToString(a) };
 
-                // or save is currently loading
-                if (SaveGame.loaded?.player != null)
-                    return null;
-
-                // no save loaded (e.g. on the title screen)
                 return null;
             });
 
@@ -198,11 +183,6 @@ namespace Creaturebook
                 if (Context.IsWorldReady)
                     return new[] { Convert.ToString(singleModData.DiscoveryDates.Count) };
 
-                // or save is currently loading
-                if (SaveGame.loaded?.player != null)
-                    return null;
-
-                // no save loaded (e.g. on the title screen)
                 return null;
             });
 
@@ -285,20 +265,18 @@ namespace Creaturebook
 
             if (e.Button == SButton.MouseLeft && Game1.player.CurrentItem?.ParentSheetIndex == 31)
             {
-                NetCollection<NPC> list = Game1.player.currentLocation.characters;
-
-                foreach (NPC Characters in list)
+                foreach (var Characters in Game1.player.currentLocation.characters)
                 {
-                    foreach (var item in newCreatures)
+                    foreach (var item in creatures)
                     {
                         string charName = Characters.Name;
                         var mousePos = e.Cursor.GrabTile;
                         string ID = Convert.ToString(item.ID);
-                        if ((Characters.Name.Contains(item.Prefix + "_" + ID) || item.OverrideDefaultNaming == Characters.Name) && Characters.getTileLocation() == mousePos && singleModData.IsNotebookObtained)
+                        if ((Characters.Name.Contains(item.Prefix + "_" + ID) || item.OverrideDefaultNaming.Contains(Characters.Name)) && Characters.getTileLocation() == mousePos && singleModData.IsNotebookObtained)
                         {
-                            SDate currentDate = SDate.Now();
-                            if (singleModData.DiscoveryDates[item.FromContentPack + "." + Characters.Name] == null )
+                            if (singleModData.DiscoveryDates[item.FromContentPack + "." + Characters.Name] == null)
                             {
+                                 SDate currentDate = SDate.Now();
                                  string hudMessage = Helper.Translation.Get("CB.discoveredHUDMessage");
                                  singleModData.DiscoveryDates[item.FromContentPack + "." + charName] = currentDate;
                                  Game1.addHUDMessage(new HUDMessage(hudMessage + item.Name, 1));
@@ -317,6 +295,41 @@ namespace Creaturebook
                         }
                     }
                 }
+                foreach (var layer in Game1.currentLocation.Map.Layers)
+                {
+                    foreach (var tiles in layer.Tiles.Array)
+                    {
+                        if (tiles is null)
+                            return;
+                        foreach (var property in tiles.Properties)
+                        {
+                            if (layer.Id == "Back" && property.Key == "Creaturebook" && property.Value.ToString().StartsWith("Discover"))
+                            {
+                                if (singleModData.DiscoveryDates[property.Value.ToString().Substring(8)] == null)
+                                {
+                                    foreach (var item in creatures)
+                                    {
+                                        SDate currentDate = SDate.Now();
+                                        string hudMessage = Helper.Translation.Get("CB.discoveredHUDMessage");
+                                        singleModData.DiscoveryDates[property.Value.ToString().Substring(8)] = currentDate;
+                                        Game1.addHUDMessage(new HUDMessage(hudMessage + item.Name, 1));
+                                        if (Context.HasRemotePlayers)
+                                        {
+                                            Helper.Multiplayer.SendMessage(singleModData, "ModData", modIDs: new[] { ModManifest.UniqueID });
+                                        }
+                                        return;
+                                    }
+                                }
+                                else
+                                {
+                                    string hudMessage_AlreadyDiscovered = Helper.Translation.Get("CB.discoveredHUDMessage.Already");
+                                    Game1.addHUDMessage(new HUDMessage(hudMessage_AlreadyDiscovered, 1));
+                                    return;
+                                }
+                            }
+                        }
+                    }                
+                }
             }
         }
         private void OnAssetRequested(object sender, AssetRequestedEventArgs e)
@@ -324,40 +337,34 @@ namespace Creaturebook
             if (e.Name.IsEquivalentTo(Path.Combine("KediDili.Creaturebook", "NotebookTexture")))
                 e.LoadFromModFile<Texture2D>("assets/NotebookTexture.png", AssetLoadPriority.Medium);
             
-            foreach (var item in newCreatures)
+            foreach (var item in creatures)
             {
                 if (e.Name.IsEquivalentTo(Path.Combine("KediDili.Creaturebook", item.FromContentPack + "." + item.Prefix + "_" + item.ID + "_Image1")))
                 {
                     Texture2D a()
                     {
-                        return item.FromContentPack.ModContent.Load<Texture2D>(PathUtilities.NormalizeAssetName(item.directory.FullName + "\\book-image.png"));
+                        return item.FromContentPack.ModContent.Load<Texture2D>(PathUtilities.NormalizeAssetName(Path.Combine(item.directory,"book-image.png")));
                     }
                     e.LoadFrom(a, AssetLoadPriority.Medium, onBehalfOf: item.FromContentPack.Manifest.UniqueID);
                     break;
                 }
                 if (e.Name.IsEquivalentTo(Path.Combine("KediDili.Creaturebook", item.FromContentPack + "." + item.Prefix + "_" + item.ID + "_Image2")))
                 {
-                    if (item.Image_2 != null)
+                    Texture2D a()
                     {
-                        Texture2D a()
-                        {
-                            return item.FromContentPack.ModContent.Load<Texture2D>(PathUtilities.NormalizeAssetName(item.directory.FullName + "\\book-image_2.png"));
-                        }
-                        e.LoadFrom(a, AssetLoadPriority.Medium, onBehalfOf: item.FromContentPack.Manifest.UniqueID);
-                        break;
+                        return item.FromContentPack.ModContent.Load<Texture2D>(PathUtilities.NormalizeAssetName(Path.Combine(item.directory, "book-image_2.png")));
                     }
+                    e.LoadFrom(a, AssetLoadPriority.Medium, onBehalfOf: item.FromContentPack.Manifest.UniqueID);
+                    break;
                 }
                 if (e.Name.IsEquivalentTo(Path.Combine("KediDili.Creaturebook", item.FromContentPack + "." + item.Prefix + "_" + item.ID + "_Image3")))
                 {
-                    if (item.Image_3 != null)
+                    Texture2D a()
                     {
-                        Texture2D a()
-                        {
-                            return item.FromContentPack.ModContent.Load<Texture2D>(PathUtilities.NormalizeAssetName(item.directory.FullName + "\\book-image_3.png"));
-                        }
-                        e.LoadFrom(a, AssetLoadPriority.Medium, onBehalfOf: item.FromContentPack.Manifest.UniqueID);
-                        break;
+                        return item.FromContentPack.ModContent.Load<Texture2D>(PathUtilities.NormalizeAssetName(Path.Combine(item.directory, "book-image_3.png")));
                     }
+                    e.LoadFrom(a, AssetLoadPriority.Medium, onBehalfOf: item.FromContentPack.Manifest.UniqueID);
+                    break;
                 }
             }
 
@@ -370,7 +377,7 @@ namespace Creaturebook
                     string ItemName = Helper.Translation.Get("CB.Notebook.Item.Name");
                     string ItemDesc = Helper.Translation.Get("CB.Notebook.Item.Desc");
 
-                    editorDictionary.Data[31] = "Creaturebook//-300/Basic /" + ItemName + "/" + ItemDesc;
+                    editorDictionary.Data[31] = "Creaturebook//-300/Quest /" + ItemName + "/" + ItemDesc;
                 });
             }
             if (e.NameWithoutLocale.IsEquivalentTo("Maps/springobjects"))
@@ -477,7 +484,7 @@ namespace Creaturebook
                 {
                     singleModData = c;
                 }
-                foreach (Creature creature in newCreatures)
+                foreach (Creature creature in creatures)
                 {
                     if (!singleModData.DiscoveryDates.ContainsKey(creature.FromContentPack + "." + creature.Prefix + "_" + Convert.ToString(creature.ID)))
                     {
