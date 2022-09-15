@@ -44,6 +44,7 @@ namespace Creaturebook
         string unknownDesc;
         string authorchapterTitle;
         string creatureAmount;
+        string setsAndPages = "";
 
         Texture2D NotebookTexture;
         Texture2D ButtonTexture;
@@ -61,7 +62,7 @@ namespace Creaturebook
 
             this.MenuTextures = new Texture2D[] { NotebookTexture, CreatureTexture, ButtonTexture, CreatureTexture_2, CreatureTexture_3 };
 
-            if (ModEntry.creatures[actualID].LatinName != null)
+            if (ModEntry.creatures[actualID].HasScientificName)
             {
                 latinName = ModEntry.Helper.Translation.Get("CB.LatinName") + ModEntry.creatures[actualID].LatinName;
             }
@@ -69,7 +70,7 @@ namespace Creaturebook
             {
                 latinName = null;
             }
-            if (ModEntry.creatures[actualID].Desc != "")
+            if (ModEntry.creatures[actualID].HasFunFact)
             {
                 description = ModEntry.creatures[actualID].Desc;
             }
@@ -96,7 +97,7 @@ namespace Creaturebook
             unknownLabel = ModEntry.Helper.Translation.Get("CB.UnknownLabel");
             unknownDesc = ModEntry.Helper.Translation.Get("CB.UnknownDesc");
             authorchapterTitle = ModEntry.Helper.Translation.Get("CB.Chapter") + Convert.ToString(currentChapter + 1) + ": " + ModEntry.chapterModels[currentChapter].ChapterTitle + "\n" + ModEntry.Helper.Translation.Get("CB.ChapterAuthorBy") + ModEntry.chapterModels[currentChapter].Author;
-            creatureAmount = ModEntry.Helper.Translation.Get("") + Convert.ToString(ModEntry.chapterModels[currentChapter].CreatureAmount);
+            creatureAmount = ModEntry.Helper.Translation.Get("CB.CreatureAmount") + Convert.ToString(ModEntry.chapterModels[currentChapter].CreatureAmount);
 
             RightArrow = new ClickableTextureComponent(new Rectangle((int)TopLeftCorner.X + 1282 - 372, (int)TopLeftCorner.Y + 718 - 242, 48, 44), Game1.mouseCursors, new Rectangle(365, 495, 12, 11), 4f);
             LeftArrow = new ClickableTextureComponent(new Rectangle((int)TopLeftCorner.X, (int)TopLeftCorner.Y + 718 - 242, 48, 44), Game1.mouseCursors, new Rectangle(352, 495, 12, 11), 4f);
@@ -108,7 +109,7 @@ namespace Creaturebook
             textBox.Y = (int)TopLeftCorner.Y + 718 - 300;
             textBox.Width = (int)TopLeftCorner.X + 1282 - 250;
 
-            menuTexts = new string[] { latinName, description, localizedName, unknownLabel, unknownDesc, authorchapterTitle, creatureAmount };
+            menuTexts = new string[] { latinName, description, localizedName, unknownLabel, unknownDesc, authorchapterTitle, creatureAmount, setsAndPages };
 
             textBox.OnEnterPressed += textBoxEnter;
             Game1.keyboardDispatcher.Subscriber = textBox;
@@ -178,13 +179,13 @@ namespace Creaturebook
             {
                 if (ModEntry.chapterModels[currentChapter].EnableSets)
                 {
-
+                    b.DrawString(Game1.smallFont, menuTexts[7], new Vector2(TopLeftCorner.X + 910 - 371, TopLeftCorner.Y + 100), Color.Black);
                 }
                 else
                 {
                     b.DrawString(Game1.smallFont, menuTexts[6], new Vector2(TopLeftCorner.X + 910 - 371, TopLeftCorner.Y + 100), Color.Black);
-                    SpriteText.drawString(b, menuTexts[5], (int)TopLeftCorner.X + 30, (int)TopLeftCorner.Y + 54, width: 420, height: 490, scroll_text_alignment: SpriteText.ScrollTextAlignment.Center);
                 }
+                SpriteText.drawString(b, menuTexts[5], (int)TopLeftCorner.X + 30, (int)TopLeftCorner.Y + 54, width: 420, height: 490, scroll_text_alignment: SpriteText.ScrollTextAlignment.Center);
             }
             if (actualID == 0 && IsHeaderPage && currentID == 0)
             {
@@ -403,6 +404,20 @@ namespace Creaturebook
             CreatureTexture = ModEntry.Helper.GameContent.Load<Texture2D>(Path.Combine("KediDili.Creaturebook", ModEntry.creatures[actualID].FromContentPack + "." + ModEntry.chapterModels[currentChapter].CreatureNamePrefix + "_" + ModEntry.creatures[actualID].ID + "_Image1"));
             menuTexts[5] = authorchapterTitle = ModEntry.Helper.Translation.Get("CB.Chapter") + Convert.ToString(currentChapter + 1) + ": " + ModEntry.chapterModels[currentChapter].ChapterTitle + "\n" + ModEntry.Helper.Translation.Get("CB.ChapterAuthorBy") + ModEntry.chapterModels[currentChapter].Author;
             menuTexts[6] = ModEntry.Helper.Translation.Get("CB.CreatureAmount") + Convert.ToString(ModEntry.chapterModels[currentChapter].CreatureAmount);
+            if (ModEntry.chapterModels[currentChapter].EnableSets)
+            {
+                menuTexts[7] = "";
+                foreach (var set in ModEntry.chapterModels[currentChapter].setsAndIDs)
+                {
+                    int a_1 = set.Value.IndexOf('-');
+                    string a = set.Value.Remove(a_1);
+
+                    int b_1 = set.Value.LastIndexOf('-');
+                    string b = set.Value.Substring(b_1);
+
+                    menuTexts[7] += set.Key + "  " + Convert.ToString(actualID + Convert.ToInt32(a)) + Convert.ToString(actualID + Convert.ToInt32(b)) + "\n";
+                }
+            }
             if (ModEntry.creatures[actualID].LatinName != null && latinName != null)
             {
                 menuTexts[0] = ModEntry.Helper.Translation.Get("CB.LatinName") + ModEntry.creatures[actualID].LatinName;

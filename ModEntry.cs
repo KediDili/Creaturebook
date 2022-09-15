@@ -11,14 +11,6 @@ using StardewValley;
 
 namespace Creaturebook
 {
-    public class ModConfig
-    {
-        public bool ShowScientificNames { get; set; } = true;
-        public bool ShowDiscoveryDates { get; set; } = true;
-        public KeybindList OpenMenuKeybind { get; set; } = KeybindList.Parse("LeftShift + B, LeftControl + B, LeftControl + LeftShift + B");
-        public string WayToGetNotebook { get; set; } = "Letter";
-    }
-
     public class ModEntry : Mod
     {
         internal static IModHelper Helper;
@@ -120,31 +112,32 @@ namespace Creaturebook
                         newCreatures.Add(creatureData);
                     }
                     creatures.AddRange(newCreatures.OrderBy(o => o.ID).ToList());
-                    newCreatures = new List<Creature>();
                     chapterModels.Add(chapter);
                     if (chapter.EnableSets)
                     {
-                        foreach (var item in creatures)
+                        foreach (var creature in creatures)
                         {
-                            if (!chapter.setsAndIDs.ContainsKey(creatureData.BelongsToSet))
+                            if (!chapter.setsAndIDs.ContainsKey(creature.BelongsToSet))
                             {
-                                chapter.setsAndIDs.Add(item.BelongsToSet, Convert.ToString(item.ID));
+                                chapter.setsAndIDs.Add(creature.BelongsToSet, Convert.ToString(creature.ID));
                             }
                             else
                             {
-                                chapter.setsAndIDs[item.BelongsToSet] += "-" + Convert.ToString(item.ID);
-                                int lastOccurence;
-                                int firstOccurence;
-                                string first = "";
-                                string last = "";
-                                lastOccurence = chapter.setsAndIDs[item.BelongsToSet].LastIndexOf('-');
-                                firstOccurence = chapter.setsAndIDs[item.BelongsToSet].IndexOf('-');
-                                first = chapter.setsAndIDs[item.BelongsToSet].Substring(lastOccurence);
-                                last = chapter.setsAndIDs[item.BelongsToSet].Substring(firstOccurence);
-                                chapter.setsAndIDs[item.BelongsToSet] = first + "-" + last;
+                                chapter.setsAndIDs[creature.BelongsToSet] += "-" + Convert.ToString(creature.ID);
                             }
                         }
+                        foreach (var creature in creatures)
+                        {
+                            int lastOccurence = chapter.setsAndIDs[creature.BelongsToSet].LastIndexOf('-');
+                            int firstOccurence = chapter.setsAndIDs[creature.BelongsToSet].IndexOf('-');
+                            string last = chapter.setsAndIDs[creature.BelongsToSet].Substring(lastOccurence);
+
+                            string first = chapter.setsAndIDs[creature.BelongsToSet].Remove(firstOccurence);
+
+                            chapter.setsAndIDs[creature.BelongsToSet] = first + last;
+                        }
                     }
+                    newCreatures = new List<Creature>();
                 }
                 uniqueModIDs.Add(contentPack.Manifest.UniqueID);
             }

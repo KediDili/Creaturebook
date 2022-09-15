@@ -9,6 +9,13 @@ using StardewModdingAPI;
 using StardewModdingAPI.Utilities;
 namespace Creaturebook
 {
+    public class ModConfig
+    {
+        public bool ShowScientificNames { get; set; } = true;
+        public bool ShowDiscoveryDates { get; set; } = true;
+        public KeybindList OpenMenuKeybind { get; set; } = KeybindList.Parse("LeftShift + B, LeftControl + B, LeftControl + LeftShift + B");
+        public string WayToGetNotebook { get; set; } = "Letter";
+    }
     public class ModData
     {
         public IDictionary<string, SDate> DiscoveryDates { get; set; } = new Dictionary<string, SDate>();
