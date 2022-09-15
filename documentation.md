@@ -54,6 +54,10 @@ Field Name | Value Type | Is it Required? | Default Value    |  Notes
 `OverrideDefaultNaming` | `string` | No | - | This is used if you want your creature to be found by clicking an NPC-in-game-code that has a different internal name than how does Creaturebook name creatures' pages internally.
 `BelongsToSet` | `string` | No, and will be used only if your chapter's ``EnableSets`` is enabled. | `"Other"` | This is the name of the said creature's set. Any creatures with the same ``BelongsToSet`` will be assigned to same set. Creatures that are in same set aren't required to have sequencing pages, but rather would be preferred to have for better organization.
 
+## Nice and all but I don't see anything about creatures' translatable display names or descriptions?
+
+Yes you don't. You'll find your answer here!: https://github.com/KediDili/Creaturebook/blob/main/translation.md
+
 ## For any questions about something else than the chapter.json or creature.json
 ### Are there any image size restrictions with any of `book-image.png`, `book-image_2.png` or `book-image_3.png` files?
 - No restrictions put by Creaturebook itself! However, it should be smaller than 4096x4096, because that this is a game limitation.
@@ -83,3 +87,29 @@ Token Name | What input does it want? | Returns This Value Type | Nice but what'
 #### But my image is smaller/bigger than the original. Is this any problem?
 - If this was an image from another mod/one of the game's own stuff you're patching, it obviously would be. I don't know if it'll be actually a trouble for Creaturebook, but in theory I don't think so since it doesn't care about dimensions. Though if it's too far from the original, original `Scale` and `Offset` values can make your image messed up.
 
+### I want to retexture Creaturebook's own assets. Can I do that?
+- Of course! All you should do is do any of these CP patches like:
+```
+{ 
+  "Changes": [
+      {
+         "LogName": "Changing Creaturebook's notebook menu background",
+         "Action": "Load", //Can do EditImage too then completely replace the imag
+         "FromFile": "assets/notebook.png",
+         "Target": "KediDili.Creaturebook/NotebookTexture" //Patches notebook background
+      },
+      {
+         "LogName": "Changing Creaturebook's item",
+         "Action": "Load", //Can do EditImage too then completely replace the imag
+         "FromFile": "assets/item.png",
+         "Target": "KediDili.Creaturebook/NoteItem" //Patches Creaturebook's item image
+      },
+      {
+         "LogName": "Changing Creaturebook's searching button",
+         "Action": "Load", //Can do EditImage too then completely replace the imag
+         "FromFile": "assets/button.png",
+         "Target": "KediDili.Creaturebook/SearchButton" //Patches Creaturebook's searching button on menu
+      },
+   ]
+}
+```
