@@ -59,6 +59,31 @@ Field Name | Value Type | Is it Required? | Default Value    |  Notes
 Yes you don't. You'll find your answer here!: https://github.com/KediDili/Creaturebook/blob/main/translation.md
 
 ## For any questions about something else than the chapter.json or creature.json
+### You mentioned a second way to discover creatures and stuff about spesific tiles in user guide, where is it's documentation?
+- Here. You can have TileDatas to instantly discover a certain creature. You can do a patch like this to add one, but **note that this feature is untested.**:
+```
+{ 
+  "Changes": [
+      {
+          "LogName": "Tiledata for instant discover",
+          "Action": "EditMap",
+	  "MapTiles":
+	  [
+	     {
+	         "Position": {
+		     "X": "5",
+		     "Y": "10"
+		 },
+		 "Layer": "Back", //This has to be the Back layer!
+		 "SetProperties":{
+		     "KediDili.Creaturebook": "Discover <ContentPackID>.<CreatureNamePrefix>_<ID>" // Like KediDili.ProjectStarlight.CB.Flutter_32
+		 }
+	     }
+	  ]
+      }
+]
+```
+
 ### Are there any image size restrictions with any of `book-image.png`, `book-image_2.png` or `book-image_3.png` files?
 - No restrictions put by Creaturebook itself! However, it should be smaller than 4096x4096, because that this is a game limitation.
 
