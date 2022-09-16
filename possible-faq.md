@@ -1,5 +1,6 @@
 # Welcome to possible mod faq.
-This is a user guide for Creaturebook. If you're looking to make content packs or do translations, please go back to this page:
+This is a user guide for Creaturebook. If you're looking to make content packs or do translations, please go back to this page then find your way:
+https://github.com/KediDili/Creaturebook#readme
 
 Let's get started, users.
 ### Is it compatible with SVE/RSV/Any other known mods? 
