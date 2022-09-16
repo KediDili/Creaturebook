@@ -1,1 +1,30 @@
-Yeah but can't write it rn sorry Sheku
+# Welcome to possible mod faq.
+This is a user guide for Creaturebook. If you're looking to make content packs or do translations, please go back to this page:
+
+Let's get started, users.
+### Is it compatible with SVE/RSV/Any other known mods? 
+- Dont you dare not using your logic for such an annoying question.
+
+### Any known conflicted mods?
+- Any mod that adds an item with a hardcoded ID of `31`. It shouldn't cause errors, but either this mod will overwrite it, or the other mod will.
+
+### What is Creaturebook?
+- Creaturebook is a framework mod that allows content packs to add their creatures' pages for information, and allows said creatures to be discovered by the player. So yeah, it's sort of a bestiary mod. Since the mod is a framework, don't expect it to do anything without content packs.
+
+### How to install it?
+- Just like any other mod. Drop it to anywhere in Mods folder. 
+
+### What are its dependencies? 
+- The only necessary requirement is SMAPI. Content Patcher and Generic Mod Config Menu  are optional dependencies.
+
+### Does this mod use Harmony?
+- No. And it never will unless needed.
+
+### How do I see information about creatures?
+- First, you need to have discovered a creature. If you already have, use the mod's menu opening keybind while no other menu is open. You can find it in your config.json, or install Generic Mod Config Menu to easily change it. The default keybind is `LeftControl + LeftShift + B`.
+
+### How do I discover a creature? 
+- There are two ways. One is via clicking a tile (with the Creaturebook item in hand) that 's set to  get you to discover a creature instantly. The second and primary way is clicking to anything that has got a page in Creaturebook and that's coded into the game as an NPC (So yes, using Custom Companions will work, fellow authors.) with Creaturebook item in hand.
+
+### How do I obtain Creaturebook item?
+- That depends on what your `WayToGetNotebookItem` config is set to. It's valid values are `Letter`, `Inventory` and `Events`. The value names should be self explaining. Use Generic Mod Config Menu for easier configuration.
