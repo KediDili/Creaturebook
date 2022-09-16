@@ -22,5 +22,5 @@ https://github.com/KediDili/Creaturebook/blob/main/translation.md
 # Credits & Permissions
 First of all, endless thanks to @shekurika who has taught me the ways of ~~The Force~~ the magic of C# modmaking, endured my endless idiocy on everything and helped me with issues under the hoods. Secondly, all beta testers and beautiful people of SMC (Stardew Modding Community)
 
-All the art assets of this mod are either based on vanilla's assets, or completely done by myself.
+All the art assets of this mod are either made by using vanilla assets, or completely done by myself.
 You can find the code license here: https://github.com/KediDili/Creaturebook/blob/main/LICENSE
