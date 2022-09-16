@@ -24,4 +24,4 @@ First of all, endless thanks to @shekurika who has taught me the ways of ~~The F
 Secondly, all beta testers and beautiful people of SMC (Stardew Modding Community)
 
 All the art assets of this mod are either based on vanilla's assets, or completely done by myself.
-You can find the code license here:
+You can find the code license here: https://github.com/KediDili/Creaturebook/blob/main/LICENSE
