@@ -8,6 +8,9 @@ Let's get started, users.
 ### Any known conflicted mods?
 - Any mod that adds an item with a hardcoded ID of `31`. It shouldn't cause errors, but either this mod will overwrite it, or the other mod will.
 
+### Any known bugs?
+- There's a bug with attempting to discover with giftable NPCs, they might take the Creaturebook as a gift and they will hate it, unless the NPC has a rejecting dialogue for it. I *think* the discovering logic should still work, though this is untested.
+
 ### What is Creaturebook?
 - Creaturebook is a framework mod that allows content packs to add their creatures' pages for information, and allows said creatures to be discovered by the player. So yeah, it's sort of a bestiary mod. Since the mod is a framework, don't expect it to do anything without content packs.
 
@@ -24,7 +27,7 @@ Let's get started, users.
 - First, you need to have discovered a creature. If you already have, use the mod's menu opening keybind while no other menu is open. You can find it in your config.json, or install Generic Mod Config Menu to easily change it. The default keybind is `LeftControl + LeftShift + B`.
 
 ### How do I discover a creature? 
-- There are two ways. One is via clicking a tile (with the Creaturebook item in hand) that 's set to  get you to discover a creature instantly. The second and primary way is clicking to anything that has got a page in Creaturebook and that's coded into the game as an NPC (So yes, using Custom Companions will work, fellow authors.) with Creaturebook item in hand.
+- There are two ways. One is via clicking a tile (with the Creaturebook item in hand) that 's set to  get you to discover a creature instantly (Note that this feature is completely untested). The second and primary way is clicking to anything that has got a page in Creaturebook and that's coded into the game as an NPC (So yes, using Custom Companions will work, fellow authors.) with Creaturebook item in hand.
 
 ### How do I obtain Creaturebook item?
 - That depends on what your `WayToGetNotebookItem` config is set to. It's valid values are `Letter`, `Inventory` and `Events`. The value names should be self explaining. Use Generic Mod Config Menu for easier configuration.
