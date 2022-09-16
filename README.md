@@ -5,7 +5,7 @@ A framework that allows the player to have a notebook that includes info on vari
 As this mod is a framework, it wont do too much on its own. Download some content packs and have fun. For possibly-could-become-a-faq
 kind of questions, please see user guide page first, then install it from ModDrop or Nexus later if you wish.
 
-Nexus:
+Nexus: https://www.nexusmods.com/stardewvalley/mods/13807
 
 ModDrop:
 
