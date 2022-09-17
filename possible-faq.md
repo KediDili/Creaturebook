@@ -33,6 +33,9 @@ Let's get started, users.
 ### How do I obtain Creaturebook item?
 - That depends on what your `WayToGetNotebookItem` config is set to. It's valid values are `Letter`, `Inventory` and `Events`. The value names should be self explaining. Use Generic Mod Config Menu for easier configuration.
 
+### There's this button on the mod's menu, what is it?
+- It's a button to open the menu's search box. Type one of a creature's ID, translated name or scientific name, press enter and the correct page shall show up.
+
 ### Is this mod multiplayer compatible?
 - There's some kind of support implemented into it, but it's untested.
 
