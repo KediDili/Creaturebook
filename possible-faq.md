@@ -32,3 +32,12 @@ Let's get started, users.
 
 ### How do I obtain Creaturebook item?
 - That depends on what your `WayToGetNotebookItem` config is set to. It's valid values are `Letter`, `Inventory` and `Events`. The value names should be self explaining. Use Generic Mod Config Menu for easier configuration.
+
+### Is this mod multiplayer compatible?
+- There's some kind of support implemented into it, but it's untested.
+
+### Is this mod compatible with Linux/Mac/Android?
+- I believe it is compatible with Linux and Mac, but this is untested. As for Android, unfortunately no, and won't be unless someone else volunteers to port it.
+
+### Is this mod split-screen compatible?
+- I don't know, but I don't think so.
