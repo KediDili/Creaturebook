@@ -65,7 +65,7 @@ namespace Creaturebook
                 }
                 foreach (var chapter in chapterData)
                 {
-                    string title = chapter.ChapterTitle;
+                    string title = chapter.ChapterFolder;
 
                     var subfolders = new DirectoryInfo(Path.Combine(contentPack.DirectoryPath, title)).GetDirectories();
                     List<Creature> newCreatures = new List<Creature>();
@@ -265,13 +265,13 @@ namespace Creaturebook
                         string charName = Characters.Name;
                         var mousePos = e.Cursor.GrabTile;
                         string ID = Convert.ToString(item.ID);
-                        if ((Characters.Name.Contains(item.Prefix + "_" + ID) || item.OverrideDefaultNaming.Contains(Characters.Name)) && Characters.getTileLocation() == mousePos && singleModData.IsNotebookObtained)
+                        if ((Characters.Name.Equals(item.Prefix + "_" + ID) || item.OverrideDefaultNaming.Contains(Characters.Name)) && Characters.getTileLocation() == mousePos && singleModData.IsNotebookObtained)
                         {
-                            if (singleModData.DiscoveryDates[item.FromContentPack + "." + Characters.Name] == null)
+                            if (singleModData.DiscoveryDates[item.FromContentPack.Manifest.UniqueID + "." + item.Prefix + "_" + ID] == null)
                             {
                                  SDate currentDate = SDate.Now();
                                  string hudMessage = Helper.Translation.Get("CB.discoveredHUDMessage");
-                                 singleModData.DiscoveryDates[item.FromContentPack + "." + charName] = currentDate;
+                                 singleModData.DiscoveryDates[item.FromContentPack.Manifest.UniqueID + "." + item.Prefix + "_" + ID] = currentDate;
                                  Game1.addHUDMessage(new HUDMessage(hudMessage + item.Name, 1));
                                  if (Context.HasRemotePlayers)
                                  {
@@ -279,7 +279,7 @@ namespace Creaturebook
                                  }
                                  return;
                             }
-                            else if (singleModData.DiscoveryDates[item.FromContentPack + "." + charName] != null)
+                            else if (singleModData.DiscoveryDates[item.FromContentPack.Manifest.UniqueID + "." + item.Prefix + "_" + ID] != null)
                             {
                                  string hudMessage_AlreadyDiscovered = Helper.Translation.Get("CB.discoveredHUDMessage.Already");
                                  Game1.addHUDMessage(new HUDMessage(hudMessage_AlreadyDiscovered, 1));
@@ -332,7 +332,7 @@ namespace Creaturebook
             
             foreach (var item in creatures)
             {
-                if (e.Name.IsEquivalentTo(Path.Combine("KediDili.Creaturebook", item.FromContentPack + "." + item.Prefix + "_" + item.ID + "_Image1")))
+                if (e.Name.IsEquivalentTo(Path.Combine("KediDili.Creaturebook", item.FromContentPack.Manifest.UniqueID + "." + item.Prefix + "_" + item.ID + "_Image1")))
                 {
                     Texture2D a()
                     {
@@ -341,7 +341,7 @@ namespace Creaturebook
                     e.LoadFrom(a, AssetLoadPriority.Medium, onBehalfOf: item.FromContentPack.Manifest.UniqueID);
                     break;
                 }
-                if (e.Name.IsEquivalentTo(Path.Combine("KediDili.Creaturebook", item.FromContentPack + "." + item.Prefix + "_" + item.ID + "_Image2")))
+                if (e.Name.IsEquivalentTo(Path.Combine("KediDili.Creaturebook", item.FromContentPack.Manifest.UniqueID + "." + item.Prefix + "_" + item.ID + "_Image2")))
                 {
                     Texture2D a()
                     {
@@ -350,7 +350,7 @@ namespace Creaturebook
                     e.LoadFrom(a, AssetLoadPriority.Medium, onBehalfOf: item.FromContentPack.Manifest.UniqueID);
                     break;
                 }
-                if (e.Name.IsEquivalentTo(Path.Combine("KediDili.Creaturebook", item.FromContentPack + "." + item.Prefix + "_" + item.ID + "_Image3")))
+                if (e.Name.IsEquivalentTo(Path.Combine("KediDili.Creaturebook", item.FromContentPack.Manifest.UniqueID + "." + item.Prefix + "_" + item.ID + "_Image3")))
                 {
                     Texture2D a()
                     {
@@ -479,9 +479,9 @@ namespace Creaturebook
                 }
                 foreach (Creature creature in creatures)
                 {
-                    if (!singleModData.DiscoveryDates.ContainsKey(creature.FromContentPack + "." + creature.Prefix + "_" + Convert.ToString(creature.ID)))
+                    if (!singleModData.DiscoveryDates.ContainsKey(creature.FromContentPack.Manifest.UniqueID + "." + creature.Prefix + "_" + Convert.ToString(creature.ID)))
                     {
-                        singleModData.DiscoveryDates.Add(creature.FromContentPack + "." + creature.Prefix + "_" + creature.ID, null);
+                        singleModData.DiscoveryDates.Add(creature.FromContentPack.Manifest.UniqueID + "." + creature.Prefix + "_" + creature.ID, null);
                     }
                 }
             }
