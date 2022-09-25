@@ -20,13 +20,10 @@ namespace Creaturebook
         internal static ModConfig modConfig = new ModConfig();
         List<Chapter> chapterData = new List<Chapter>();
         Creature creatureData = new Creature();
-        internal static ModData singleModData = new ModData();
         internal static List<Chapter> chapterModels = new List<Chapter>();
         internal static List<Creature> creatures = new List<Creature>();
         internal static List<string> setsList = new List<string>();
-
-        internal static ModData PeermodData = new ModData();
-        internal long hostPlayerID;
+        internal const string MyModID = "KediDili.Creaturebook";
 
         public override void Entry(IModHelper helper)
         {
@@ -42,8 +39,6 @@ namespace Creaturebook
             Helper.Events.GameLoop.DayStarted += OnDayStarted;
             Helper.Events.Content.AssetRequested += OnAssetRequested;
             Helper.Events.Player.Warped += OnWarped;
-            Helper.Events.Multiplayer.PeerConnected += OnPeerConnected;
-            Helper.Events.Multiplayer.ModMessageReceived += OnModMessageReceived;
         }
         private void OnGameLaunched(object sender, GameLaunchedEventArgs e)
         {
@@ -150,22 +145,26 @@ namespace Creaturebook
         {
             var api = Helper.ModRegistry.GetApi<IContentPatcherAPI>("Pathoschild.ContentPatcher");
             int a = 0;
+            int b = 0;
             if (api == null)
                 return;
-
-            foreach (var item in singleModData.DiscoveryDates)
+            foreach (var item in Game1.player.modData.Pairs)
             {
-                if (item.Value != null)
+                if (item.Key.StartsWith(MyModID))
                 {
                     a++;
+                    if (item.Value != "null" && item.Key != MyModID + "_IsNotebookObtained")
+                    {
+                        b++;
+                    }
                 }
             }
-
+            
             api.RegisterToken(ModManifest, "AllDiscoveredCreatures", () =>
             {
                 // save is loaded
                 if (Context.IsWorldReady)
-                    return new[] { Convert.ToString(a) };
+                    return new[] { Convert.ToString(b) };
 
                 return null;
             });
@@ -174,7 +173,7 @@ namespace Creaturebook
             {
                 // save is loaded
                 if (Context.IsWorldReady)
-                    return new[] { Convert.ToString(singleModData.DiscoveryDates.Count) };
+                    return new[] { Convert.ToString(a) };
 
                 return null;
             });
@@ -265,25 +264,22 @@ namespace Creaturebook
                         string charName = Characters.Name;
                         var mousePos = e.Cursor.GrabTile;
                         string ID = Convert.ToString(item.ID);
-                        if ((Characters.Name.Equals(item.Prefix + "_" + ID) || item.OverrideDefaultNaming.Contains(Characters.Name)) && Characters.getTileLocation() == mousePos && singleModData.IsNotebookObtained)
+                        if ((Characters.Name.Equals(item.Prefix + "_" + ID) || item.OverrideDefaultNaming.Contains(Characters.Name)) && Characters.getTileLocation() == mousePos && Game1.player.modData[MyModID + "_IsNotebookObtained"] == "true")
                         {
-                            if (singleModData.DiscoveryDates[item.FromContentPack.Manifest.UniqueID + "." + item.Prefix + "_" + ID] == null)
+                            if (Game1.player.modData[MyModID + "_" + item.FromContentPack.Manifest.UniqueID + "." + item.Prefix + "_" + ID] == "null")
                             {
-                                 SDate currentDate = SDate.Now();
-                                 string hudMessage = Helper.Translation.Get("CB.discoveredHUDMessage");
-                                 singleModData.DiscoveryDates[item.FromContentPack.Manifest.UniqueID + "." + item.Prefix + "_" + ID] = currentDate;
-                                 Game1.addHUDMessage(new HUDMessage(hudMessage + item.Name, 1));
-                                 if (Context.HasRemotePlayers)
-                                 {
-                                     Helper.Multiplayer.SendMessage(singleModData, "ModData", modIDs: new[] { ModManifest.UniqueID });
-                                 }
-                                 return;
+                                SDate CurrentDate = SDate.Now();
+                                string convertedCurrentDate = CurrentDate.DaysSinceStart.ToString();
+                                string hudMessage = Helper.Translation.Get("CB.discoveredHUDMessage");
+                                Game1.player.modData.Add(MyModID + "_" + item.FromContentPack.Manifest.UniqueID + "." + item.Prefix + "_" + ID, convertedCurrentDate);
+                                Game1.addHUDMessage(new HUDMessage(hudMessage + item.Name, 1));
+                                return;
                             }
-                            else if (singleModData.DiscoveryDates[item.FromContentPack.Manifest.UniqueID + "." + item.Prefix + "_" + ID] != null)
+                            else if (Game1.player.modData[MyModID + "_" + item.FromContentPack.Manifest.UniqueID + "." + item.Prefix + "_" + ID] != "null")
                             {
-                                 string hudMessage_AlreadyDiscovered = Helper.Translation.Get("CB.discoveredHUDMessage.Already");
-                                 Game1.addHUDMessage(new HUDMessage(hudMessage_AlreadyDiscovered, 1));
-                                 return;
+                                string hudMessage_AlreadyDiscovered = Helper.Translation.Get("CB.discoveredHUDMessage.Already");
+                                Game1.addHUDMessage(new HUDMessage(hudMessage_AlreadyDiscovered, 1));
+                                return;
                             }
                         }
                     }
@@ -298,18 +294,14 @@ namespace Creaturebook
                         {
                             if (layer.Id == "Back" && property.Key == "Creaturebook" && property.Value.ToString().StartsWith("Discover"))
                             {
-                                if (singleModData.DiscoveryDates[property.Value.ToString().Substring(8)] == null)
+                                if (Game1.player.modData[MyModID + "_" + property.Value.ToString().Substring(8)] == "null")
                                 {
                                     foreach (var item in creatures)
                                     {
                                         SDate currentDate = SDate.Now();
                                         string hudMessage = Helper.Translation.Get("CB.discoveredHUDMessage");
-                                        singleModData.DiscoveryDates[property.Value.ToString().Substring(8)] = currentDate;
+                                        Game1.player.modData[MyModID + "_" + property.Value.ToString().Substring(8)] = currentDate.DaysSinceStart.ToString();
                                         Game1.addHUDMessage(new HUDMessage(hudMessage + item.Name, 1));
-                                        if (Context.HasRemotePlayers)
-                                        {
-                                            Helper.Multiplayer.SendMessage(singleModData, "ModData", modIDs: new[] { ModManifest.UniqueID });
-                                        }
                                         return;
                                     }
                                 }
@@ -334,29 +326,29 @@ namespace Creaturebook
             {
                 if (e.Name.IsEquivalentTo(Path.Combine("KediDili.Creaturebook", item.FromContentPack.Manifest.UniqueID + "." + item.Prefix + "_" + item.ID + "_Image1")))
                 {
-                    Texture2D a()
+                    Texture2D firstImage()
                     {
                         return item.FromContentPack.ModContent.Load<Texture2D>(PathUtilities.NormalizeAssetName(Path.Combine(item.directory,"book-image.png")));
                     }
-                    e.LoadFrom(a, AssetLoadPriority.Medium, onBehalfOf: item.FromContentPack.Manifest.UniqueID);
+                    e.LoadFrom(firstImage, AssetLoadPriority.Medium, onBehalfOf: item.FromContentPack.Manifest.UniqueID);
                     break;
                 }
                 if (e.Name.IsEquivalentTo(Path.Combine("KediDili.Creaturebook", item.FromContentPack.Manifest.UniqueID + "." + item.Prefix + "_" + item.ID + "_Image2")))
                 {
-                    Texture2D a()
+                    Texture2D secondImage()
                     {
                         return item.FromContentPack.ModContent.Load<Texture2D>(PathUtilities.NormalizeAssetName(Path.Combine(item.directory, "book-image_2.png")));
                     }
-                    e.LoadFrom(a, AssetLoadPriority.Medium, onBehalfOf: item.FromContentPack.Manifest.UniqueID);
+                    e.LoadFrom(secondImage, AssetLoadPriority.Medium, onBehalfOf: item.FromContentPack.Manifest.UniqueID);
                     break;
                 }
                 if (e.Name.IsEquivalentTo(Path.Combine("KediDili.Creaturebook", item.FromContentPack.Manifest.UniqueID + "." + item.Prefix + "_" + item.ID + "_Image3")))
                 {
-                    Texture2D a()
+                    Texture2D thirdImage()
                     {
                         return item.FromContentPack.ModContent.Load<Texture2D>(PathUtilities.NormalizeAssetName(Path.Combine(item.directory, "book-image_3.png")));
                     }
-                    e.LoadFrom(a, AssetLoadPriority.Medium, onBehalfOf: item.FromContentPack.Manifest.UniqueID);
+                    e.LoadFrom(thirdImage, AssetLoadPriority.Medium, onBehalfOf: item.FromContentPack.Manifest.UniqueID);
                     break;
                 }
             }
@@ -441,11 +433,7 @@ namespace Creaturebook
         }
         private void OnSaving(object sender, SavingEventArgs e)
         {
-            if (!Context.IsMainPlayer)
-            {
-                Helper.Multiplayer.SendMessage(singleModData, "ModData", modIDs: new[] { ModManifest.UniqueID }, playerIDs: new[] { hostPlayerID });
-            }
-            else if (Context.IsMainPlayer)
+            if (Context.IsMainPlayer)
             {
                 ModData c = Helper.Data.ReadSaveData<ModData>("KediDili.Creaturebook-DiscoveryProgress");
                 List<string> s = Helper.Data.ReadSaveData<List<string>>("KediDili.Creaturebook-PreviouslyDownloadedPacks");
@@ -454,17 +442,21 @@ namespace Creaturebook
                 {
                     foreach (string item in s)
                     {
-                        foreach (var key in singleModData.DiscoveryDates.Keys)
+                        foreach (var key in Game1.player.modData.Keys)
                         {
-                            if (key.Contains(item) && !Helper.ModRegistry.IsLoaded(item))
+                            if (key.Contains(MyModID + "_" + item) && !Helper.ModRegistry.IsLoaded(item))
                             {
-                                singleModData.DiscoveryDates.Remove(key);
+                                Game1.player.modData.Remove(key);
                             }
                         }
                     }
+                    for (int i = 0; i < uniqueModIDs.Count; i++)
+                    {
+                        Game1.player.modData[MyModID + "_" + "PreviouslyDownloadedPacks" + i.ToString()] = uniqueModIDs[i];
+                    }
                 }
-                Helper.Data.WriteSaveData("KediDili.Creaturebook-DiscoveryProgress", singleModData);
-                Helper.Data.WriteSaveData("KediDili.Creaturebook-PreviouslyDownloadedPacks", uniqueModIDs);
+                Helper.Data.WriteSaveData<ModData>("KediDili.Creaturebook-PreviouslyDownloadedPacks", null);
+                Helper.Data.WriteSaveData<ModData>("KediDili.Creaturebook-DiscoveryProgress", null);
             }
         }
         private void OnSaveLoaded(object sender, SaveLoadedEventArgs e)
@@ -473,28 +465,30 @@ namespace Creaturebook
             {
                 ModData c = Helper.Data.ReadSaveData<ModData>("KediDili.Creaturebook-DiscoveryProgress");
 
-                if (c != null)
+                if (c is not null)
                 {
-                    singleModData = c;
+                    foreach (var item in c.DiscoveryDates)
+                    {
+                        if (item.Value != null)
+                        {
+                            Game1.player.modData.Add(MyModID + "_" + item.Key, item.Value.DaysSinceStart.ToString());
+                        }
+                        else if (true)
+                        {
+                            Game1.player.modData.Add(MyModID + "_" + item.Key, "null");
+                        }
+                    }
+                    Game1.player.modData.Add(MyModID + "_IsNotebookObtained", c.IsNotebookObtained.ToString());
+                }
+                else if (c is null)
+                {
+                    Game1.player.modData.Add(MyModID + "_" + "IsNotebookObtained", "false");
                 }
                 foreach (Creature creature in creatures)
                 {
-                    if (!singleModData.DiscoveryDates.ContainsKey(creature.FromContentPack.Manifest.UniqueID + "." + creature.Prefix + "_" + Convert.ToString(creature.ID)))
+                    if (!Game1.player.modData.ContainsKey(MyModID + "_" + creature.FromContentPack.Manifest.UniqueID + "." + creature.Prefix + "_" + Convert.ToString(creature.ID)))
                     {
-                        singleModData.DiscoveryDates.Add(creature.FromContentPack.Manifest.UniqueID + "." + creature.Prefix + "_" + creature.ID, null);
-                    }
-                }
-            }
-            if (Context.IsMultiplayer)
-            {
-                foreach (IMultiplayerPeer peer in Helper.Multiplayer.GetConnectedPlayers())
-                {
-                    if (peer.IsHost)
-                    { 
-                        hostPlayerID = peer.PlayerID;
-                        if(Context.IsMainPlayer)
-                            Helper.Multiplayer.SendMessage(singleModData, "ModData", modIDs: new[] { ModManifest.UniqueID });
-                        Helper.Multiplayer.SendMessage(hostPlayerID, "long", modIDs: new[] { ModManifest.UniqueID });
+                        Game1.player.modData.Add(MyModID + "_" + creature.FromContentPack.Manifest.UniqueID + "." + creature.Prefix + "_" + creature.ID, "null");
                     }
                 }
             }
@@ -502,50 +496,31 @@ namespace Creaturebook
         private void OnDayStarted(object sender, DayStartedEventArgs e)
         {
             SDate date = SDate.Now();
-            if (Context.IsMainPlayer && !singleModData.IsNotebookObtained)
+            if (Game1.player.modData.ContainsKey(MyModID + "_" + "IsNotebookObtained"))
             {
-                if (modConfig.WayToGetNotebook == "Inventory")
+                if (Context.IsMainPlayer && Game1.player.modData[MyModID + "_" + "IsNotebookObtained"] == "false")
                 {
-                    Game1.player.addItemByMenuIfNecessary(new StardewValley.Object(31, 1, false));
-                    singleModData.IsNotebookObtained = true;
+                    if (modConfig.WayToGetNotebook == "Inventory")
+                    {
+                        Game1.player.addItemByMenuIfNecessary(new StardewValley.Object(31, 1, false));
+                        Game1.player.modData[MyModID + "_" + "IsNotebookObtained"] = "true";
+                    }
+                    else if (modConfig.WayToGetNotebook == "Letter" && !Game1.player.hasOrWillReceiveMail("giveOutCreaturebook") && date.DaysSinceStart > 7)
+                    {
+                        Game1.addMailForTomorrow("giveOutCreaturebook");
+                        Game1.player.modData[MyModID + "_" + "IsNotebookObtained"] = "true";
+                    }
                 }
-                else if (modConfig.WayToGetNotebook == "Letter" && !Game1.player.hasOrWillReceiveMail("giveOutCreaturebook") && date.DaysSinceStart > 7)
-                {
-                    Game1.addMailForTomorrow("giveOutCreaturebook");
-                    singleModData.IsNotebookObtained = true;
-                } 
-            }
-            else if (!Context.IsMainPlayer && !singleModData.IsNotebookObtained)
-            {
-                singleModData.IsNotebookObtained = true;
-            }
-        }
-        private void OnPeerConnected(object sender, PeerConnectedEventArgs e)
-        {
-            if (Context.IsMainPlayer)
-            {
-                Helper.Multiplayer.SendMessage(singleModData, "ModData", modIDs: new[] { ModManifest.UniqueID });
-            }
-        }
-        private void OnModMessageReceived(object sender, ModMessageReceivedEventArgs e)
-        {
-            if (e.FromModID == ModManifest.UniqueID && e.Type == "ModData")
-            {
-                singleModData = e.ReadAs<ModData>();
-            }
-            else if (e.FromModID == ModManifest.UniqueID && e.Type == "long")
-            {
-                hostPlayerID = e.ReadAs<long>();
             }
         }
         private void OnWarped(object sender, WarpedEventArgs e)
         {
-            if (e.Player.eventsSeen.Contains(70030004) && !singleModData.IsNotebookObtained)
+            if (e.Player.eventsSeen.Contains(70030004) && Game1.player.modData[MyModID + "_" + "IsNotebookObtained"] == "false")
             {
                 if (modConfig.WayToGetNotebook == "Events" && Context.IsMainPlayer)
                 {
                     Game1.player.addItemByMenuIfNecessary(new StardewValley.Object(31, 1, false));
-                    singleModData.IsNotebookObtained = true;
+                    Game1.player.modData[MyModID + "_" + "IsNotebookObtained"] = "true";
                 }
             }
         }

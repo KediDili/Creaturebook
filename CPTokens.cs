@@ -4,15 +4,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using StardewModdingAPI;
+using StardewValley;
 
 namespace Creaturebook
 {
     internal class DiscoveredCreaturesFromAChapter
     {
-        private string prefix = ModEntry.chapterModels[0].CreatureNamePrefix;
-        private string b;
-        private int c;
-        private int d;
+        public string previousPrefix;
+        public string b;
+        public int c;
+        public int d;
 
         public bool AllowsInput()
         {
@@ -32,13 +33,13 @@ namespace Creaturebook
         {
             if (IsReady())
             {
-                foreach (var date in ModEntry.singleModData.DiscoveryDates)
+                foreach (var data in Game1.player.modData.Pairs)
                 {
                     foreach (var item in ModEntry.creatures)
                     {
-                        if (item.Prefix == b && date.Value != null)
+                        if (item.FromContentPack.Manifest.UniqueID + "_" + item.Prefix == previousPrefix && data.Value != "null")
                         {
-                            if (date.Key.Contains(prefix))
+                            if (data.Key.Contains(previousPrefix))
                             {
                                 d++;
                             }
@@ -58,13 +59,13 @@ namespace Creaturebook
             b = input;
             if (IsReady() && input != "" && input != null)
             {
-                foreach (var date in ModEntry.singleModData.DiscoveryDates)
+                foreach (var data in Game1.player.modData.Pairs)
                 {
                     foreach (var item in ModEntry.creatures)
                     {
-                        if (item.Prefix == input && date.Value != null)
+                        if (item.Prefix == input && data.Value != "null")
                         {
-                            if (date.Key.Contains(prefix))
+                            if (data.Key.Contains(previousPrefix))
                             {
                                 c++;
                             }
@@ -81,9 +82,9 @@ namespace Creaturebook
     }
     internal class IsCreatureDiscovered 
     {
-        private string FullID = ModEntry.chapterModels[0].CreatureNamePrefix + "_" + ModEntry.creatures[0].ID.ToString();
-        private bool a;
-        private bool b;
+        public string previousKey; 
+        public bool a_Boolean;
+        public bool b_Boolean;
 
         public bool AllowsInput()
         {
@@ -103,19 +104,21 @@ namespace Creaturebook
         {
             if (IsReady())
             {
-                foreach (var date in ModEntry.singleModData.DiscoveryDates)
+                foreach (var item in Game1.player.modData.Pairs)
                 {
-                    foreach (var item in ModEntry.creatures)
+                    if (item.Key.StartsWith(ModEntry.MyModID) && item.Key != ModEntry.MyModID + "_IsNotebookObtained")
                     {
-                        if (item.Prefix == FullID && date.Value != null)
+                        foreach (var creature in ModEntry.creatures)
                         {
-                            b = true;
-                            break;
+                            if (creature.FromContentPack.Manifest.UniqueID + "_" + creature.Prefix + "_" + creature.ID == previousKey && item.Value != "null")
+                            {
+                                b_Boolean = true;
+                                break;
+                            }
                         }
                     }
-                    break;
                 }
-                return a != b;
+                return a_Boolean != b_Boolean;
             }
             else
                 return false;
@@ -127,19 +130,23 @@ namespace Creaturebook
         {
             if (IsReady())
             {
-                foreach (var date in ModEntry.singleModData.DiscoveryDates)
+                foreach (var item in Game1.player.modData.Pairs)
                 {
-                    foreach (var item in ModEntry.creatures)
+                    if (item.Key.StartsWith(ModEntry.MyModID) && item.Key != ModEntry.MyModID + "_IsNotebookObtained")
                     {
-                        if (item.Prefix == FullID && date.Value != null)
+                        foreach (var creature in ModEntry.creatures)
                         {
-                            a = true;
-                            break;
+                            if (creature.FromContentPack.Manifest.UniqueID + "_" + creature.Prefix + "_" + creature.ID == input && item.Value != null)
+                            {
+                                a_Boolean = true;
+                                previousKey = input;
+                                break;
+                            }
                         }
                     }
                     break;
                 }
-                yield return Convert.ToString(a);
+                yield return Convert.ToString(a_Boolean);
             }
             else
             {

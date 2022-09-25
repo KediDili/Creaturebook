@@ -1,7 +1,7 @@
 {
   "Name": "Creaturebook",
   "Author": "KediDili",
-  "Version": "1.0.0",
+  "Version": "1.0.2",
   "Description": "A framework that allows the player to have a notebook that includes info on various creatures.",
   "UniqueID": "KediDili.Creaturebook",
   "EntryDll": "Creaturebook.dll",

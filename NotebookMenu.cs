@@ -6,7 +6,6 @@ using StardewValley.BellsAndWhistles;
 using StardewValley.Menus;
 using StardewModdingAPI.Utilities;
 using System;
-using System.Collections.Generic;
 using System.IO;
 
 namespace Creaturebook
@@ -104,7 +103,7 @@ namespace Creaturebook
             SearchButton = new ClickableTextureComponent(new Rectangle((int)TopLeftCorner.X + 1282 - 300, (int)TopLeftCorner.Y + 718 - 220, 68, 64), MenuTextures[2], new Rectangle(0, 0, 17, 16), 4f);
             CloseButton = new ClickableTextureComponent(new Rectangle((int)TopLeftCorner.X + 1282 - 300, (int)TopLeftCorner.Y, 48, 48), Game1.mouseCursors, new Rectangle(337, 494, 12, 12), 4f);
 
-            textBox = new TextBox(Game1.content.Load<Texture2D>("LooseSprites\\textBox"), null, Game1.smallFont, Color.Black);
+            textBox = new TextBox(Game1.content.Load<Texture2D>(PathUtilities.NormalizePath("LooseSprites\\textBox")), null, Game1.smallFont, Color.Black);
             textBox.X = (int)TopLeftCorner.X + 1282 - 300;
             textBox.Y = (int)TopLeftCorner.Y + 718 - 300;
             textBox.Width = (int)TopLeftCorner.X + 1282 - 250;
@@ -125,9 +124,12 @@ namespace Creaturebook
             if (!IsHeaderPage)
             {
                 SearchButton.draw(b);
-                if (ModEntry.singleModData.DiscoveryDates[modID + "." + fullCreatureID] != null)
+                if (Game1.player.modData[ModEntry.MyModID + "_" + modID + "." + fullCreatureID] != "null")
                 {
-                    string translatedDate = ModEntry.singleModData.DiscoveryDates[modID + "." + fullCreatureID].ToLocaleString();
+                    string Date = Game1.player.modData[ModEntry.MyModID + "_" + ModEntry.creatures[currentID].FromContentPack.Manifest.UniqueID + "." + fullCreatureID];
+                    int count = Convert.ToInt32(Date);
+                    SDate convertedDate = SDate.FromDaysSinceStart(count);
+                    string translatedDate = convertedDate.ToLocaleString();
                     string dateDiscovered = ModEntry.Helper.Translation.Get("CB.dateDiscovered") + translatedDate;
                     if (Button_2 != null)
                     {
@@ -167,7 +169,7 @@ namespace Creaturebook
                         SpriteText.drawString(b, menuTexts[1], (int)TopLeftCorner.X + 910 - 371, (int)TopLeftCorner.Y + 254 - 230, width: 420, height: 490);
                     }
                 }
-                else if (ModEntry.singleModData.DiscoveryDates[modID + "." + fullCreatureID] == null)
+                else if (Game1.player.modData[ModEntry.MyModID + "_" + modID + "." + fullCreatureID] == "null")
                 {
                     b.Draw(CreatureTexture, TopLeftCorner, null, Color.Black * 0.8f, 0f, new Vector2(0 + ModEntry.creatures[actualID].OffsetX, 0 + ModEntry.creatures[actualID].OffsetY), ModEntry.creatures[actualID].Scale_1, SpriteEffects.None, layerDepth: 0.5f);
 

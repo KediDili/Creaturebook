@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.IO;
-using Microsoft.Xna.Framework.Graphics;
+﻿using System.Collections.Generic;
 using StardewModdingAPI;
 using StardewModdingAPI.Utilities;
 namespace Creaturebook
@@ -13,7 +7,7 @@ namespace Creaturebook
     {
         public bool ShowScientificNames { get; set; } = true;
         public bool ShowDiscoveryDates { get; set; } = true;
-        public KeybindList OpenMenuKeybind { get; set; } = KeybindList.Parse("LeftShift + B, LeftControl + B, LeftControl + LeftShift + B");
+        public KeybindList OpenMenuKeybind { get; set; } = KeybindList.Parse("LeftControl + LeftShift + B");
         public string WayToGetNotebook { get; set; } = "Letter";
     }
     public class ModData
@@ -43,7 +37,7 @@ namespace Creaturebook
         public string Desc { get; set; } = "";
         public string Name { get; set; }
         public string Prefix { get; set; }
-        public string LatinName { get; set; } = null;
+        public string ScientificName { get; set; } = null;
         public string OverrideDefaultNaming { get; set; } = "";
         public string directory { get; set; }
         public string BelongsToSet { get; set; } = "Other";
