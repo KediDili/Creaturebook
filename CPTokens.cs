@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using StardewModdingAPI;
 using StardewValley;
 
@@ -35,9 +32,9 @@ namespace Creaturebook
             {
                 foreach (var data in Game1.player.modData.Pairs)
                 {
-                    foreach (var item in ModEntry.creatures)
+                    foreach (var item in ModEntry.Chapters)
                     {
-                        if (item.FromContentPack.Manifest.UniqueID + "_" + item.Prefix == previousPrefix && data.Value != "null")
+                        if (item.FromContentPack.Manifest.UniqueID + "_" + item.CreatureNamePrefix == previousPrefix && data.Value != "null")
                         {
                             if (data.Key.Contains(previousPrefix))
                             {
@@ -61,9 +58,9 @@ namespace Creaturebook
             {
                 foreach (var data in Game1.player.modData.Pairs)
                 {
-                    foreach (var item in ModEntry.creatures)
+                    foreach (var chapter in ModEntry.Chapters)
                     {
-                        if (item.Prefix == input && data.Value != "null")
+                        if (chapter.CreatureNamePrefix == input && data.Value != "null")
                         {
                             if (data.Key.Contains(previousPrefix))
                             {
@@ -108,14 +105,16 @@ namespace Creaturebook
                 {
                     if (item.Key.StartsWith(ModEntry.MyModID) && item.Key != ModEntry.MyModID + "_IsNotebookObtained")
                     {
-                        foreach (var creature in ModEntry.creatures)
+                        foreach (var chapter in ModEntry.Chapters)
                         {
-                            if (creature.FromContentPack.Manifest.UniqueID + "_" + creature.Prefix + "_" + creature.ID == previousKey && item.Value != "null")
+                            for (int i = 0; i < chapter.Creatures.Count; i++)
                             {
-                                b_Boolean = true;
-                                break;
-                            }
-                        }
+                                if (chapter.FromContentPack.Manifest.UniqueID + "_" + chapter.CreatureNamePrefix + "_" + chapter.Creatures[i].ID == previousKey && item.Value != "null")
+                                {
+                                    b_Boolean = true;
+                                    break;
+                                }
+                            }                        }
                     }
                 }
                 return a_Boolean != b_Boolean;
@@ -134,13 +133,16 @@ namespace Creaturebook
                 {
                     if (item.Key.StartsWith(ModEntry.MyModID) && item.Key != ModEntry.MyModID + "_IsNotebookObtained")
                     {
-                        foreach (var creature in ModEntry.creatures)
+                        foreach (var chapter in ModEntry.Chapters)
                         {
-                            if (creature.FromContentPack.Manifest.UniqueID + "_" + creature.Prefix + "_" + creature.ID == input && item.Value != null)
+                            for (int i = 0; i < chapter.Creatures.Count; i++)
                             {
-                                a_Boolean = true;
-                                previousKey = input;
-                                break;
+                                if (chapter.FromContentPack.Manifest.UniqueID + "_" + chapter.CreatureNamePrefix + "_" + chapter.Creatures[i].ID == input && item.Value != null)
+                                {
+                                    a_Boolean = true;
+                                    previousKey = input;
+                                    break;
+                                }
                             }
                         }
                     }
