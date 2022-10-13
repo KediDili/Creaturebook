@@ -1,10 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using StardewValley.Tools;
-using System.Runtime;
 using StardewValley;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
@@ -89,18 +83,9 @@ namespace Creaturebook
             return true;
         }
 
-        public override bool beginUsing(GameLocation location, int x, int y, Farmer who)
-        {
-            return base.beginUsing(location, x, y, who);
-        }
-
         public override void DoFunction(GameLocation location, int x, int y, int power, Farmer who)
         {
-            SDate CurrentDate = SDate.Now();
-            string convertedCurrentDate = CurrentDate.DaysSinceStart.ToString();
-            string hudMessage = ModEntry.Helper.Translation.Get("CB.discoveredHUDMessage");
-            string hudMessage_AlreadyDiscovered = ModEntry.Helper.Translation.Get("CB.discoveredHUDMessage.Already");
-            var mousePos = ModEntry.Helper.Input.GetCursorPosition().GrabTile;
+            var mousePos = ModEntry.Helper.Input.GetCursorPosition().Tile;
             foreach (var Characters in Game1.currentLocation.characters)
             {
                 foreach (var chapter in ModEntry.Chapters)
@@ -112,34 +97,18 @@ namespace Creaturebook
 
                         if ((Characters.Name.Equals(chapter.CreatureNamePrefix + "_" + ID) || chapter.Creatures[i].OverrideDefaultNaming.Contains(Characters.Name)) && Characters.getTileLocation() == mousePos && Game1.player.modData[ModEntry.MyModID + "_IsNotebookObtained"] == "true")
                         {
-                            if (Game1.player.modData[ModEntry.MyModID + "_" + chapter.FromContentPack.Manifest.UniqueID + "." + chapter.CreatureNamePrefix + "_" + ID] == "null")
-                            {
-                                Game1.player.modData.Add(ModEntry.MyModID + "_" + chapter.FromContentPack.Manifest.UniqueID + "." + chapter.CreatureNamePrefix + "_" + ID, convertedCurrentDate);
-                                Game1.addHUDMessage(new HUDMessage(hudMessage + chapter.Creatures[i].Name, 1));
-                                return;
-                            }
-                            else if (Game1.player.modData[ModEntry.MyModID + "_" + chapter.FromContentPack.Manifest.UniqueID + "." + chapter.CreatureNamePrefix + "_" + ID] != "null")
-                            {
-                                Game1.addHUDMessage(new HUDMessage(hudMessage_AlreadyDiscovered, 1));
-                                return;
-                            }
+                            bool discover = Game1.player.modData[ModEntry.MyModID + "_" + chapter.FromContentPack.Manifest.UniqueID + "." + chapter.CreatureNamePrefix + "_" + ID] == "null";
+                            Discover(discover, false, "", chapter, chapter.Creatures[i]);
+                            return;
                         }
                         else if (attachments[0] != null)
                         {
                             ModEntry.monitor.Log("Yes this code is being run 2nd method", LogLevel.Info);
                             if (attachments[0].ParentSheetIndex == chapter.Creatures[i].UseThisItem)
                             {
-                                if (Game1.player.modData[ModEntry.MyModID + "_" + chapter.FromContentPack.Manifest.UniqueID + "." + chapter.CreatureNamePrefix + "_" + ID] == "null")
-                                {
-                                    Game1.player.modData.Add(ModEntry.MyModID + "_" + chapter.FromContentPack.Manifest.UniqueID + "." + chapter.CreatureNamePrefix + "_" + ID, convertedCurrentDate);
-                                    Game1.addHUDMessage(new HUDMessage(hudMessage + chapter.Creatures[i].Name, 1));
-                                    return;
-                                }
-                                else if (Game1.player.modData[ModEntry.MyModID + "_" + chapter.FromContentPack.Manifest.UniqueID + "." + chapter.CreatureNamePrefix + "_" + ID] != "null")
-                                {
-                                    Game1.addHUDMessage(new HUDMessage(hudMessage_AlreadyDiscovered, 1));
-                                    return;
-                                }
+                                bool discover = Game1.player.modData[ModEntry.MyModID + "_" + chapter.FromContentPack.Manifest.UniqueID + "." + chapter.CreatureNamePrefix + "_" + ID] == "null";
+                                Discover(discover, false, "", chapter, chapter.Creatures[i]);
+                                return;
                             }
                             else if (chapter.EnableSets)
                             {
@@ -148,13 +117,10 @@ namespace Creaturebook
                                     if (attachments[0].ParentSheetIndex == chapter.Sets[l].DiscoverWithThisItem && 0 != chapter.Sets[l].DiscoverWithThisItem)
                                     {
                                         int random2 = Game1.random.Next(chapter.Sets[l].CreaturesBelongingToThisSet.Length);
-                                        if (Game1.player.modData[chapter.FromContentPack.Manifest.UniqueID + "." + chapter.CreatureNamePrefix + "_" + chapter.Sets[l].CreaturesBelongingToThisSet[random2]] == "null")
-                                        {
-                                            Game1.player.modData[chapter.FromContentPack.Manifest.UniqueID + "." + chapter.CreatureNamePrefix + "_" + chapter.Sets[l].CreaturesBelongingToThisSet[random2]] = convertedCurrentDate;
-                                            Game1.addHUDMessage(new HUDMessage(hudMessage + chapter.Creatures[random2].Name, 1));
-                                            attachments[0] = null;
-                                            return;
-                                        }
+                                        bool discover = Game1.player.modData[ModEntry.MyModID + "_" + chapter.FromContentPack.Manifest.UniqueID + "." + chapter.CreatureNamePrefix + "_" + ID] == "null";
+                                        Discover(discover, false, "", chapter, chapter.Creatures[random2]);
+                                        attachments[0] = null;
+                                        return;
                                     }
                                 }
                             }
@@ -170,17 +136,9 @@ namespace Creaturebook
                                     ModEntry.monitor.Log("Yes this code is being run 3rd method", LogLevel.Info);
                                     if (layer.Id == "Back" && property.Key == "Creaturebook" && property.Value.ToString().StartsWith("Discover"))
                                     {
-                                        if (Game1.player.modData[ModEntry.MyModID + "_" + property.Value.ToString()[8..]] == "null")
-                                        {
-                                            Game1.player.modData[ModEntry.MyModID + "_" + property.Value.ToString()[8..]] = convertedCurrentDate;
-                                            Game1.addHUDMessage(new HUDMessage(hudMessage + chapter.Creatures[i].Name, 1));
-                                            return;
-                                        }
-                                        else
-                                        {
-                                            Game1.addHUDMessage(new HUDMessage(hudMessage_AlreadyDiscovered, 1));
-                                            return;
-                                        }
+                                        bool discover = Game1.player.modData[ModEntry.MyModID + "_" + property.Value.ToString()[8..]] == "null";
+                                        Discover(discover, true, property.Value.ToString()[8..], chapter, chapter.Creatures[i]);
+                                        return;
                                     }
                                 }
                             }
@@ -188,21 +146,31 @@ namespace Creaturebook
                     }
                 }
             }
-        } //new Rectangle(108, 48, 64, 32)
-
-        public override void draw(SpriteBatch b)
+        }
+        static private void Discover(bool ShouldBeDiscovered, bool IsFromTileData, string property, Chapter chapter, Creature creature)
         {
+            SDate CurrentDate = SDate.Now();
+            string convertedCurrentDate = CurrentDate.DaysSinceStart.ToString();
+            string hudMessage = ModEntry.Helper.Translation.Get("CB.discoveredHUDMessage");
+            string hudMessage_AlreadyDiscovered = ModEntry.Helper.Translation.Get("CB.discoveredHUDMessage.Already");
 
+            if (ShouldBeDiscovered && !IsFromTileData)
+            {
+                Game1.player.modData[ModEntry.MyModID + "_" + chapter.FromContentPack.Manifest.UniqueID + "." + chapter.CreatureNamePrefix + "_" + creature.ID] = convertedCurrentDate;
+                Game1.addHUDMessage(new HUDMessage(hudMessage + creature.Name, 1));
+            }
+            else if (ShouldBeDiscovered && IsFromTileData)
+            {
+                Game1.player.modData[ModEntry.MyModID + "_" + property] = convertedCurrentDate;
+                Game1.addHUDMessage(new HUDMessage(hudMessage + creature.Name, 1));
+            }
+            else
+                Game1.addHUDMessage(new HUDMessage(hudMessage_AlreadyDiscovered, 1));
         }
 
         public override void drawInMenu(SpriteBatch spriteBatch, Vector2 location, float scaleSize, float transparency, float layerDepth, StackDrawType drawStackNumber, Color color, bool drawShadow)
         {
             spriteBatch.Draw(texture.Value, location + new Vector2(32f, 32f), null, color * transparency, 0f, new Vector2(8f, 8f), 4f * scaleSize, SpriteEffects.None, layerDepth);
-
-            if (attachments.Count != 0)
-            {
-
-            }
         }
     }
 }

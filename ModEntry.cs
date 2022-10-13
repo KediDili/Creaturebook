@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime;
 using System.IO;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
@@ -209,13 +208,13 @@ namespace Creaturebook
                 setValue: value => modConfig.ShowDiscoveryDates = value
             );
 
-            gmcmAPI.AddBoolOption(
+            /*gmcmAPI.AddBoolOption(
                 mod: manifest,
                 name: () => Helper.Translation.Get("CB.GMCM.EnableStickies.Name"),
                 tooltip: () => Helper.Translation.Get("CB.GMCM.EnableStickies.Desc"),
                 getValue: () => modConfig.EnableStickies,
                 setValue: value => modConfig.EnableStickies = value
-            );
+            );*/
 
             gmcmAPI.AddKeybindList(
                 mod: manifest,
@@ -249,9 +248,7 @@ namespace Creaturebook
                 for (int l = 0; l < Chapters[i].Creatures.Count; l++)
                 {
                     if (args[0] == Chapters[i].FromContentPack.Manifest.UniqueID && Chapters[i].CreatureNamePrefix == args[1] && args[2] == Chapters[i].Creatures[l].ID.ToString())
-                    {
                         Game1.player.modData[args[0] + "." + args[1] + "_" + args[2]] = "true";
-                    }
                 }
             }
         }
@@ -405,15 +402,12 @@ namespace Creaturebook
                         foreach (var key in Game1.player.modData.Keys)
                         {
                             if (key.Contains(MyModID + "_" + item) && !Helper.ModRegistry.IsLoaded(item))
-                            {
                                 Game1.player.modData.Remove(key);
-                            }
+                            
                         }
                     }
                     for (int i = 0; i < uniqueModIDs.Count; i++)
-                    {
                         Game1.player.modData[MyModID + "_" + "PreviouslyDownloadedPacks" + i.ToString()] = uniqueModIDs[i];
-                    }
                 }
                 Helper.Data.WriteSaveData<ModData>("KediDili.Creaturebook-PreviouslyDownloadedPacks", null);
                 Helper.Data.WriteSaveData<ModData>("KediDili.Creaturebook-DiscoveryProgress", null);
@@ -448,9 +442,7 @@ namespace Creaturebook
                     for (int i = 0; i < chapter.Creatures.Count; i++)
                     {
                         if (!Game1.player.modData.ContainsKey(MyModID + "_" + chapter.FromContentPack.Manifest.UniqueID + "." + chapter.CreatureNamePrefix + "_" + Convert.ToString(chapter.Creatures[i].ID)))
-                        {
                             Game1.player.modData.Add(MyModID + "_" + chapter.FromContentPack.Manifest.UniqueID + "." + chapter.CreatureNamePrefix + "_" + chapter.Creatures[i].ID, "null");
-                        }
                     }
                 }
             }
@@ -471,7 +463,6 @@ namespace Creaturebook
                     {
                         Game1.addMailForTomorrow("giveOutCreaturebook");
                         Game1.player.modData[MyModID + "_" + "IsNotebookObtained"] = "true";
-                        
                     }
                 }
             }

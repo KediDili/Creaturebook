@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using StardewModdingAPI;
 using StardewModdingAPI.Utilities;
+using Microsoft.Xna.Framework;
+
 namespace Creaturebook
 {
     public class ModConfig
@@ -9,7 +11,7 @@ namespace Creaturebook
         public bool ShowDiscoveryDates { get; set; } = true;
         public KeybindList OpenMenuKeybind { get; set; } = KeybindList.Parse("LeftControl + LeftShift + B");
         public string WayToGetNotebook { get; set; } = "Letter";
-        public bool EnableStickies { get; set; } = true;
+        //public bool EnableStickies { get; set; } = true;
     }
     public class ModData
     {
@@ -46,6 +48,12 @@ namespace Creaturebook
         public int[] CreaturesBelongingToThisSet;
 
         public int DiscoverWithThisItem;
+
+        public Vector2[] OffsetsInMenu;
+
+        public float[] ScalesInMenu;
+
+        public bool NeedsSecondPage; 
     }
     public struct Creature
     {
@@ -54,18 +62,10 @@ namespace Creaturebook
         public string Name;
         
         public string ScientificName;
-        
-        public int OffsetX;
-        
-        public int OffsetX_2;
 
-        public int OffsetX_3;
+        public Vector2[] ImageOffsets;
 
-        public int OffsetY;
-
-        public int OffsetY_2;
-
-        public int OffsetY_3;
+        public float[] ImageScales;
 
         public int UseThisItem;
 
@@ -80,11 +80,5 @@ namespace Creaturebook
         public bool HasScientificName;
 
         public bool HasFunFact;
-
-        public float Scale_1;
-
-        public float Scale_2;
-
-        public float Scale_3;
     }
 }
