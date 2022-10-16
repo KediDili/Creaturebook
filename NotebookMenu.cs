@@ -43,7 +43,7 @@ namespace Creaturebook
         bool IsFirstActive = true;
         bool IsSecondActive = false;
         bool IsThirdActive = false;
-        bool showSetPaging = true;
+        bool showSetPaging = ModEntry.Chapters[0].EnableSets;
         bool IsHeaderPage = true;
         bool WasHeaderPage = false;
         List<bool> pageOrder = new();
@@ -68,37 +68,39 @@ namespace Creaturebook
         readonly Texture2D[] MenuTextures;
         public NotebookMenu()
         {
-            CreatureTexture = ModEntry.Helper.GameContent.Load<Texture2D>(Path.Combine("KediDili.Creaturebook", ModEntry.Chapters[currentChapter].FromContentPack.Manifest.UniqueID + "." + ModEntry.Chapters[currentChapter].CreatureNamePrefix + "_" + ModEntry.Chapters[currentChapter].Creatures[currentID].ID + "_Image1"));
+            CreatureTexture = ModEntry.Helper.GameContent.Load<Texture2D>(Path.Combine("KediDili.Creaturebook", ModEntry.Chapters[0].FromContentPack.Manifest.UniqueID + "." + ModEntry.Chapters[0].CreatureNamePrefix + "_" + ModEntry.Chapters[0].Creatures[0].ID + "_Image1"));
 
             MenuTextures = new Texture2D[] { NotebookTexture, CreatureTexture, ButtonTexture, CreatureTexture_2, CreatureTexture_3, Stickies };
-
-            PagesWithStickies = ModEntry.Helper.Data.ReadJsonFile<string[]>(PathUtilities.NormalizeAssetName("localData/stickies.json"));
-            if (PagesWithStickies is null)
+            if (ModEntry.modConfig.EnableStickies)
             {
-                PagesWithStickies = new string[4];
-                Sticky_Yellow = new ClickableComponent(new Rectangle((int)TopLeftCorner.X - 200, (int)TopLeftCorner.Y + 200, 240, 84), "");
-                Sticky_Green = new ClickableComponent(new Rectangle((int)TopLeftCorner.X - 200, (int)TopLeftCorner.Y + 260, 240, 84), "");
-                Sticky_Blue = new ClickableComponent(new Rectangle((int)TopLeftCorner.X - 200, (int)TopLeftCorner.Y + 320, 240, 84), "");
-                Sticky_Purple = new ClickableComponent(new Rectangle((int)TopLeftCorner.X - 200, (int)TopLeftCorner.Y + 380, 240, 84), "");
-            }
-            else
-            {
-                Sticky_Yellow = PagesWithStickies[0] is null ? new ClickableComponent(new Rectangle((int)TopLeftCorner.X - 200, (int)TopLeftCorner.Y + 200, 240, 84), "") : new ClickableComponent(new Rectangle((int)TopLeftCorner.X - 150, (int)TopLeftCorner.Y + 200, 240, 84), "");
-                Sticky_Green = PagesWithStickies[1] is null ? new ClickableComponent(new Rectangle((int)TopLeftCorner.X - 200, (int)TopLeftCorner.Y + 260, 240, 84), "") : new ClickableComponent(new Rectangle((int)TopLeftCorner.X - 150, (int)TopLeftCorner.Y + 260, 240, 84), "");
-                Sticky_Blue = PagesWithStickies[2] is null ? new ClickableComponent(new Rectangle((int)TopLeftCorner.X - 200, (int)TopLeftCorner.Y + 320, 240, 84), "") : new ClickableComponent(new Rectangle((int)TopLeftCorner.X - 150, (int)TopLeftCorner.Y + 320, 240, 84), "");
-                Sticky_Purple = PagesWithStickies[3] is null ? new ClickableComponent(new Rectangle((int)TopLeftCorner.X - 200, (int)TopLeftCorner.Y + 380, 240, 84), "") : new ClickableComponent(new Rectangle((int)TopLeftCorner.X - 150, (int)TopLeftCorner.Y + 380, 240, 84), "");
-            }
+                PagesWithStickies = ModEntry.Helper.Data.ReadJsonFile<string[]>(PathUtilities.NormalizeAssetName("localData/stickies.json"));
+                if (PagesWithStickies is null)
+                {
+                    PagesWithStickies = new string[4];
+                    Sticky_Yellow = new ClickableComponent(new Rectangle((int)TopLeftCorner.X - 200, (int)TopLeftCorner.Y + 200, 240, 84), "");
+                    Sticky_Green = new ClickableComponent(new Rectangle((int)TopLeftCorner.X - 200, (int)TopLeftCorner.Y + 260, 240, 84), "");
+                    Sticky_Blue = new ClickableComponent(new Rectangle((int)TopLeftCorner.X - 200, (int)TopLeftCorner.Y + 320, 240, 84), "");
+                    Sticky_Purple = new ClickableComponent(new Rectangle((int)TopLeftCorner.X - 200, (int)TopLeftCorner.Y + 380, 240, 84), "");
+                }
+                else
+                {
+                    Sticky_Yellow = PagesWithStickies[0] is null ? new ClickableComponent(new Rectangle((int)TopLeftCorner.X - 200, (int)TopLeftCorner.Y + 200, 240, 84), "") : new ClickableComponent(new Rectangle((int)TopLeftCorner.X - 150, (int)TopLeftCorner.Y + 200, 240, 84), "");
+                    Sticky_Green = PagesWithStickies[1] is null ? new ClickableComponent(new Rectangle((int)TopLeftCorner.X - 200, (int)TopLeftCorner.Y + 260, 240, 84), "") : new ClickableComponent(new Rectangle((int)TopLeftCorner.X - 150, (int)TopLeftCorner.Y + 260, 240, 84), "");
+                    Sticky_Blue = PagesWithStickies[2] is null ? new ClickableComponent(new Rectangle((int)TopLeftCorner.X - 200, (int)TopLeftCorner.Y + 320, 240, 84), "") : new ClickableComponent(new Rectangle((int)TopLeftCorner.X - 150, (int)TopLeftCorner.Y + 320, 240, 84), "");
+                    Sticky_Purple = PagesWithStickies[3] is null ? new ClickableComponent(new Rectangle((int)TopLeftCorner.X - 200, (int)TopLeftCorner.Y + 380, 240, 84), "") : new ClickableComponent(new Rectangle((int)TopLeftCorner.X - 150, (int)TopLeftCorner.Y + 380, 240, 84), "");
+                }
 
-            if (ModEntry.Chapters[currentChapter].Creatures[currentID].HasScientificName)
-            latinName = ModEntry.Helper.Translation.Get("CB.LatinName") + ModEntry.Chapters[currentChapter].Creatures[currentID].ScientificName;
+            }
+            if (ModEntry.Chapters[0].Creatures[0].HasScientificName)
+            latinName = ModEntry.Helper.Translation.Get("CB.LatinName") + ModEntry.Chapters[0].Creatures[0].ScientificName;
             else
             latinName = null;
-            if (ModEntry.Chapters[currentChapter].Creatures[currentID].HasFunFact)
-            description = ModEntry.Chapters[currentChapter].Creatures[currentID].Desc;
-            if (ModEntry.Chapters[currentChapter].Creatures[currentID].HasExtraImages)
+            if (ModEntry.Chapters[0].Creatures[0].HasFunFact)
+            description = ModEntry.Chapters[0].Creatures[0].Desc;
+            if (ModEntry.Chapters[0].Creatures[0].HasExtraImages)
             {
                 Button_2 = new ClickableTextureComponent(new Rectangle((int)TopLeftCorner.X + 50, (int)TopLeftCorner.Y + 50, 50, 50), Game1.mouseCursors, new Rectangle(528, 128, 8, 8), 4f);
-                if (File.Exists(PathUtilities.NormalizeAssetName(ModEntry.Chapters[currentChapter].Creatures[currentID].Directory + "\\book-image_3.png")))
+                if (File.Exists(PathUtilities.NormalizeAssetName(ModEntry.Chapters[0].Creatures[0].Directory + "\\book-image_3.png")))
                 Button_3 = new ClickableTextureComponent(new Rectangle((int)TopLeftCorner.X + 50, (int)TopLeftCorner.Y + 100, 50, 50), Game1.mouseCursors, new Rectangle(520, 128, 8, 8), 4f);
                 else
                 Button_3 = null;
@@ -110,15 +112,16 @@ namespace Creaturebook
                 Button_3 = null;
             }
 
-            localizedName = ModEntry.Chapters[currentChapter].Creatures[currentID].Name;
+            localizedName = ModEntry.Chapters[0].Creatures[0].Name;
             unknownLabel = ModEntry.Helper.Translation.Get("CB.UnknownLabel");
             unknownDesc = ModEntry.Helper.Translation.Get("CB.UnknownDesc");
-            authorchapterTitle = ModEntry.Helper.Translation.Get("CB.Chapter") + Convert.ToString(currentChapter + 1) + ": " + ModEntry.Chapters[currentChapter].Title + "\n" + ModEntry.Helper.Translation.Get("CB.ChapterAuthorBy") + ModEntry.Chapters[currentChapter].Author;
+            authorchapterTitle = ModEntry.Helper.Translation.Get("CB.Chapter") + "1: " + ModEntry.Chapters[0].Title + "\n" + ModEntry.Helper.Translation.Get("CB.ChapterAuthorBy") + ModEntry.Chapters[0].Author;
             
             RightArrow = new ClickableTextureComponent(new Rectangle((int)TopLeftCorner.X + 1282 - 372, (int)TopLeftCorner.Y + 718 - 242, 48, 44), Game1.mouseCursors, new Rectangle(365, 495, 12, 11), 4f);
             LeftArrow = new ClickableTextureComponent(new Rectangle((int)TopLeftCorner.X, (int)TopLeftCorner.Y + 718 - 242, 48, 44), Game1.mouseCursors, new Rectangle(352, 495, 12, 11), 4f);
-            SearchButton = new ClickableTextureComponent(new Rectangle((int)TopLeftCorner.X + 1282 - 300, (int)TopLeftCorner.Y + 718 - 220, 68, 64), MenuTextures[2], new Rectangle(0, 0, 17, 16), 4f);
-            CloseButton = new ClickableTextureComponent(new Rectangle((int)TopLeftCorner.X + 1282 - 300, (int)TopLeftCorner.Y, 48, 48), Game1.mouseCursors, new Rectangle(337, 494, 12, 12), 4f);
+            SearchButton = new ClickableTextureComponent(new Rectangle((int)TopLeftCorner.X + 982, (int)TopLeftCorner.Y + 718 - 220, 68, 64), MenuTextures[2], new Rectangle(0, 0, 17, 16), 4f);
+            CloseButton = new ClickableTextureComponent(new Rectangle((int)TopLeftCorner.X + 982, (int)TopLeftCorner.Y, 48, 48), Game1.mouseCursors, new Rectangle(337, 494, 12, 12), 4f);
+            ShowSetView = new ClickableTextureComponent(new Rectangle((int)TopLeftCorner.X + 982, (int)TopLeftCorner.Y + 200, 48, 48), Game1.mouseCursors, new Rectangle(337, 494, 12, 12), 4f);
 
             textBox = new TextBox(Game1.content.Load<Texture2D>(PathUtilities.NormalizePath("LooseSprites\\textBox")), null, Game1.smallFont, Color.Black)
             {
@@ -134,21 +137,21 @@ namespace Creaturebook
             UpdateNotebookPage();
             if (ModEntry.Chapters[currentChapter].EnableSets)
             {
-                SwitchToNormal_1 = new ClickableTextureComponent(new Rectangle((int)TopLeftCorner.X, (int)TopLeftCorner.Y, 64, 64), Game1.mouseCursors, new Rectangle(162, 440, 16, 16), 4f);
-                SwitchToNormal_2 = new ClickableTextureComponent(new Rectangle((int)TopLeftCorner.X + 128, (int)TopLeftCorner.Y + 128, 64, 64), Game1.mouseCursors, new Rectangle(162, 440, 16, 16), 4f);
-                CalculateSetPages(ModEntry.Chapters[currentChapter]);
+                SwitchToNormal_1 = new ClickableTextureComponent(new Rectangle((int)TopLeftCorner.X + 15, (int)TopLeftCorner.Y + 70, 64, 64), Game1.mouseCursors, new Rectangle(162, 440, 16, 16), 4f);
+                SwitchToNormal_2 = new ClickableTextureComponent(new Rectangle((int)TopLeftCorner.X + 600, (int)TopLeftCorner.Y + 70, 64, 64), Game1.mouseCursors, new Rectangle(162, 440, 16, 16), 4f);
+                CalculateSetPages(ModEntry.Chapters[0]);
             }
         }
         public override void draw(SpriteBatch b)
         {
             b.Draw(Game1.fadeToBlackRect, Game1.graphics.GraphicsDevice.Viewport.Bounds, Color.Black * 0.75f);
 
-            if (PagesWithStickies[2] is not null && PagesWithStickies[2] != modID + "." + fullCreatureID)
+            if (PagesWithStickies[2] is not null && PagesWithStickies[2] != modID + "." + fullCreatureID && ModEntry.modConfig.EnableStickies)
             b.Draw(MenuTextures[5], new Vector2(Sticky_Blue.bounds.X, Sticky_Blue.bounds.Y), new Rectangle(0, 42, 60, 21), Color.White, Stickyrotation, Vector2.Zero, 3f, SpriteEffects.None, layerDepth: 0.5f);   
             
             b.Draw(MenuTextures[0], TopLeftCorner, null, Color.White, 0f, Vector2.Zero, 3f, SpriteEffects.None, layerDepth: 0.5f);
             
-            if (PagesWithStickies[2] == modID + "." + fullCreatureID || PagesWithStickies[2] is null)
+            if (PagesWithStickies[2] == modID + "." + fullCreatureID || PagesWithStickies[2] is null && ModEntry.modConfig.EnableStickies)
             b.Draw(MenuTextures[5], new Vector2(Sticky_Blue.bounds.X, Sticky_Blue.bounds.Y), new Rectangle(0, 42, 60, 21), Color.White, Stickyrotation, Vector2.Zero, 3f, SpriteEffects.None, layerDepth: 0.5f);
 
             Sticky_Yellow.visible = true;
@@ -334,7 +337,18 @@ namespace Creaturebook
         {
             if (Sticky_Blue.containsPoint(x, y))
                 UpdateStickies(2);
-            
+            if (SwitchToNormal_1.containsPoint(x , y) && showSetPaging)
+                showSetPaging = false;
+            if (SwitchToNormal_2.containsPoint(x, y) && showSetPaging)
+            {
+                showSetPaging = false;
+                currentID += ModEntry.Chapters[currentChapter].Sets[currentSetPage + 1].CreaturesBelongingToThisSet[0];
+                actualID += ModEntry.Chapters[currentChapter].Sets[currentSetPage + 1].CreaturesBelongingToThisSet[0];
+            }
+            if (ShowSetView.containsPoint(x, y) && !showSetPaging)
+            {
+                showSetPaging = true;
+            }
             if (CloseButton.containsPoint(x, y))
             {
                 ModEntry.Helper.Data.WriteJsonFile(PathUtilities.NormalizeAssetName("localData/stickies.json"), PagesWithStickies);
@@ -417,7 +431,7 @@ namespace Creaturebook
                 {
                     actualID += ModEntry.Chapters[currentChapter].Sets[currentSetPage].CreaturesBelongingToThisSet.Length;
                     currentID += ModEntry.Chapters[currentChapter].Sets[currentSetPage].CreaturesBelongingToThisSet.Length;
-                    if (currentSetPage == pageOrder.Count - 1 && currentChapter != ModEntry.Chapters.Count)
+                    if (currentSetPage == pageOrder.Count - 1 && currentChapter < ModEntry.Chapters.Count)
                     {
                         currentChapter++;
                         currentID = 0;
@@ -450,8 +464,7 @@ namespace Creaturebook
             menuTexts[1] = ModEntry.Chapters[currentChapter].Creatures[currentID].Desc;
             MenuTextures[1] = ModEntry.Helper.GameContent.Load<Texture2D>(Path.Combine("KediDili.Creaturebook", ModEntry.Chapters[currentChapter].FromContentPack.Manifest.UniqueID + "." + ModEntry.Chapters[currentChapter].CreatureNamePrefix + "_" + ModEntry.Chapters[currentChapter].Creatures[currentID].ID + "_Image1"));
             menuTexts[5] = ModEntry.Helper.Translation.Get("CB.Chapter") + Convert.ToString(currentChapter + 1) + ": " + ModEntry.Chapters[currentChapter].Title + "\n" + ModEntry.Helper.Translation.Get("CB.ChapterAuthorBy") + ModEntry.Chapters[currentChapter].Author;
-           // menuTexts[6] = ModEntry.Helper.Translation.Get("CB.CreatureAmount") + Convert.ToString(ModEntry.Chapters[currentChapter].Creatures.Count);
-
+            
             if (ModEntry.Chapters[currentChapter].Creatures[currentID].HasScientificName)
                 menuTexts[0] = ModEntry.Helper.Translation.Get("CB.LatinName") + ModEntry.Chapters[currentChapter].Creatures[currentID].ScientificName; 
             else
@@ -460,7 +473,6 @@ namespace Creaturebook
             if (WasHeaderPage)
             {
                 menuTexts[5] = authorchapterTitle = ModEntry.Helper.Translation.Get("CB.Chapter") + Convert.ToString(currentChapter + 2) + ": " + ModEntry.Chapters[currentChapter + 1].Title + "\n" + ModEntry.Helper.Translation.Get("CB.ChapterAuthorBy") + ModEntry.Chapters[currentChapter + 1].Author;
-               // menuTexts[6] = ModEntry.Helper.Translation.Get("CB.CreatureAmount") + Convert.ToString(ModEntry.Chapters[currentChapter + 1].Creatures.Count);
                 WasHeaderPage = false;
             }
             if (ModEntry.Chapters[currentChapter].Creatures[currentID].HasExtraImages)
@@ -490,14 +502,14 @@ namespace Creaturebook
                     b.Draw(MenuTextures[1], TopLeftCorner, null, Color.Black * 0.8f, 0f, new Vector2((int)TopLeftCorner.X + ModEntry.Chapters[currentChapter].Sets[i].OffsetsInMenu[l].X, (int)TopLeftCorner.Y + ModEntry.Chapters[currentChapter].Sets[i].OffsetsInMenu[l].Y), ModEntry.Chapters[currentChapter].Sets[i].ScalesInMenu[l], SpriteEffects.None, layerDepth: 0.5f);
                 SwitchToNormal_1.draw(b);
             }
-            if (!needsSecond && i < pageOrder.Count)
+            if (!needsSecond && i < pageOrder.Count - 1)
             {
                 for (int l = 0; l < ModEntry.Chapters[currentChapter].Sets[i + 1].OffsetsInMenu.Length; l++)
                 {
                      if (Game1.player.modData[ModEntry.MyModID + "_" + modID + "." + ModEntry.Chapters[currentChapter].CreatureNamePrefix + "_" + ModEntry.Chapters[currentChapter].Sets[i + 1].CreaturesBelongingToThisSet[l]] is not "null")
-                        b.Draw(MenuTextures[1], TopLeftCorner, null, Color.White, 0f, new Vector2((int)TopLeftCorner.X + ModEntry.Chapters[currentChapter].Sets[i + 1].OffsetsInMenu[l].X, (int)TopLeftCorner.Y + ModEntry.Chapters[currentChapter].Sets[i].OffsetsInMenu[l].Y), ModEntry.Chapters[currentChapter].Sets[i + 1].ScalesInMenu[l], SpriteEffects.None, layerDepth: 0.5f);
+                        b.Draw(MenuTextures[1], TopLeftCorner, null, Color.White, 0f, new Vector2((int)TopLeftCorner.X + ModEntry.Chapters[currentChapter].Sets[i + 1].OffsetsInMenu[l].X, (int)TopLeftCorner.Y + ModEntry.Chapters[currentChapter].Sets[i + 1].OffsetsInMenu[l].Y), ModEntry.Chapters[currentChapter].Sets[i + 1].ScalesInMenu[l], SpriteEffects.None, layerDepth: 0.5f);
                      else
-                        b.Draw(MenuTextures[1], TopLeftCorner, null, Color.Black * 0.8f, 0f, new Vector2((int)TopLeftCorner.X + ModEntry.Chapters[currentChapter].Sets[i + 1].OffsetsInMenu[l].X, (int)TopLeftCorner.Y + ModEntry.Chapters[currentChapter].Sets[i].OffsetsInMenu[l].Y), ModEntry.Chapters[currentChapter].Sets[i + 1].ScalesInMenu[l], SpriteEffects.None, layerDepth: 0.5f);
+                        b.Draw(MenuTextures[1], TopLeftCorner, null, Color.Black * 0.8f, 0f, new Vector2((int)TopLeftCorner.X + ModEntry.Chapters[currentChapter].Sets[i + 1].OffsetsInMenu[l].X, (int)TopLeftCorner.Y + ModEntry.Chapters[currentChapter].Sets[i + 1].OffsetsInMenu[l].Y), ModEntry.Chapters[currentChapter].Sets[i + 1].ScalesInMenu[l], SpriteEffects.None, layerDepth: 0.5f);
                      SwitchToNormal_2.draw(b);
                 }
             }

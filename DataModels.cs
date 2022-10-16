@@ -11,14 +11,13 @@ namespace Creaturebook
         public bool ShowDiscoveryDates { get; set; } = true;
         public KeybindList OpenMenuKeybind { get; set; } = KeybindList.Parse("LeftControl + LeftShift + B");
         public string WayToGetNotebook { get; set; } = "Letter";
-        //public bool EnableStickies { get; set; } = true;
+        public bool EnableStickies { get; set; } = true;
     }
     public class ModData
     {
         public IDictionary<string, SDate> DiscoveryDates { get; set; } = new Dictionary<string, SDate>();
         public bool IsNotebookObtained { get; set; } = false;
     }
-
     public struct Chapter
     {
         public string Title;

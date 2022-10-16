@@ -63,9 +63,9 @@ namespace Creaturebook
                 {
                     var subfolders = new DirectoryInfo(Path.Combine(contentPack.DirectoryPath, chapterData[i].Folder)).GetDirectories();
                     List<Creature> newCreatures = new();
-                    Chapter chapter = chapterData[0];
+                    Chapter chapter = chapterData[i];
 
-                    if (chapter.Category != "Monsters" && chapter.Category != "Insects" && chapter.Category != "Domestic" && chapter.Category != "Other" && chapter.Category != "Animal" && chapter.Category != "Flowers & Plants" && chapter.Category != "Fish" && chapter.Category != "Bird" && chapter.Category != "Trees" && chapter.Category == "Magical")
+                    if (chapter.Category != "Monsters" && chapter.Category != "Other" && chapter.Category != "Animals" && chapter.Category != "Plants" && chapter.Category != "Magical")
                     {
                         monitor.Log($"{contentPack.Manifest.Name} Has got a chapter with an invalid Category value: {chapter.Category}", LogLevel.Warn);
                         break;
@@ -90,7 +90,6 @@ namespace Creaturebook
                             monitor.Log($"{contentPack.Manifest.Name} seems to lack a 'book-image.png' under {subfolder.Name}.", LogLevel.Warn);
                             break;
                         }
-
                         creature.Name = contentPack.Translation.Get(chapter.CreatureNamePrefix + "_" + creature.ID + "_name");
                         creature.Desc = contentPack.Translation.Get(chapter.CreatureNamePrefix + "_" + creature.ID + "_desc");
                         chapter.FromContentPack = contentPack;
@@ -107,14 +106,14 @@ namespace Creaturebook
                     newCreatures = new List<Creature>();
                 }
                 uniqueModIDs.Add(contentPack.Manifest.UniqueID);
-                if (checksIfUsedCommand == 0)
+                if (checksIfUsedCommand is 0)
                     checksIfUsedCommand = 1;
             }
             Chapters = Chapters.OrderBy(o => o.Category).ToList();
 
             monitor.Log($"All content packs have been found, cleaned from invalid files and added into the Creaturebook!", LogLevel.Info);
 
-            if (checksIfUsedCommand == 1)
+            if (checksIfUsedCommand is 1)
             {
                 var configMenu = Helper.ModRegistry.GetApi<IGenericModConfigMenuApi>("spacechase0.GenericModConfigMenu");
                 var api = Helper.ModRegistry.GetApi<IContentPatcherAPI>("Pathoschild.ContentPatcher");
@@ -208,13 +207,13 @@ namespace Creaturebook
                 setValue: value => modConfig.ShowDiscoveryDates = value
             );
 
-            /*gmcmAPI.AddBoolOption(
+            gmcmAPI.AddBoolOption(
                 mod: manifest,
                 name: () => Helper.Translation.Get("CB.GMCM.EnableStickies.Name"),
                 tooltip: () => Helper.Translation.Get("CB.GMCM.EnableStickies.Desc"),
                 getValue: () => modConfig.EnableStickies,
                 setValue: value => modConfig.EnableStickies = value
-            );*/
+            );
 
             gmcmAPI.AddKeybindList(
                 mod: manifest,
