@@ -64,7 +64,6 @@ namespace Creaturebook
                     var subfolders = new DirectoryInfo(Path.Combine(contentPack.DirectoryPath, chapterData[i].Folder)).GetDirectories();
                     List<Creature> newCreatures = new();
                     Chapter chapter = chapterData[i];
-
                     if (chapter.Category != "Monsters" && chapter.Category != "Other" && chapter.Category != "Animals" && chapter.Category != "Plants" && chapter.Category != "Magical")
                     {
                         monitor.Log($"{contentPack.Manifest.Name} Has got a chapter with an invalid Category value: {chapter.Category}", LogLevel.Warn);
@@ -82,7 +81,7 @@ namespace Creaturebook
                             monitor.Log($"{contentPack.Manifest.Name} seems to lack a 'creature.json' under {subfolder.Name}.", LogLevel.Warn);
                             break;
                         }
-                        List<Creature> creatureData = contentPack.ReadJsonFile<List<Creature>>(Path.Combine(subfolder.Parent.Name, subfolder.Name, "creature.json"));
+                        Creature[] creatureData = contentPack.ReadJsonFile<Creature[]>(Path.Combine(subfolder.Parent.Name, subfolder.Name, "creature.json"));
                         Creature creature = creatureData[0];
 
                         if (!File.Exists(Path.Combine(subfolder.FullName, "book-image.png")))
