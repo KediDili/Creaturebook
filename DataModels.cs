@@ -52,7 +52,7 @@ namespace Creaturebook
 
         public float[] ScalesInMenu;
 
-        public bool NeedsSecondPage; 
+        public bool NeedsSecondPage;
     }
     public struct Creature
     {
