@@ -29,14 +29,14 @@ namespace Creaturebook
         ClickableComponent Sticky_Purple; ClickableComponent Sticky_Yellow;
         ClickableComponent Sticky_Blue; ClickableComponent Sticky_Green;
 
-        internal static string[] PagesWithStickies = new string[4];
+        static string[] PagesWithStickies = new string[4];
 
         public int currentID = 0;
-        public int actualID = 0;
+        //public int actualID = 0;
         public int currentChapter = 0;
         public int currentSetPage = 0;
-        public static Chapter ChapterYoureIn = ModEntry.Chapters[0];
-        public static Creature CurrentCreature = ChapterYoureIn.Creatures[0];
+        static Chapter ChapterYoureIn = ModEntry.Chapters[0];
+        static Creature CurrentCreature = ChapterYoureIn.Creatures[0];
         string fullCreatureID;
         string modID;
         readonly TextBox textBox = new(Game1.content.Load<Texture2D>(PathUtilities.NormalizePath("LooseSprites\\textBox")), null, Game1.smallFont, Color.Black)
@@ -57,7 +57,8 @@ namespace Creaturebook
         bool showSetPaging = ChapterYoureIn.EnableSets;
         bool IsHeaderPage = true;
         bool WasHeaderPage = false;
-        bool DontDrawRightArrow = false;
+        bool lastSetOnItsOwn = false;
+        bool wasOnSecondPage = false;
         List<bool> pageOrder = new();
 
         readonly string unknownLabel = ModEntry.Helper.Translation.Get("CB.UnknownLabel");
@@ -82,6 +83,11 @@ namespace Creaturebook
         readonly Texture2D[] MenuTextures;
         public NotebookMenu()
         {
+            currentID = 0;
+            currentChapter = 0;
+            currentSetPage = 0;
+            ChapterYoureIn = ModEntry.Chapters[0];
+            showSetPaging = ChapterYoureIn.EnableSets;
             MenuTextures = new Texture2D[] { NotebookTexture, CreatureTexture, ButtonTexture, CreatureTexture_2, CreatureTexture_3, Stickies };
             if (ModEntry.modConfig.EnableStickies)
             {
@@ -154,7 +160,9 @@ namespace Creaturebook
                 if (!showSetPaging)
                 {
                     SearchButton.draw(b);
-                    ShowSetView.draw(b);
+                    if (ChapterYoureIn.EnableSets)
+                        ShowSetView.draw(b);
+                    
                     if (!Game1.player.modData[ModEntry.MyModID + "_" + modID + "." + fullCreatureID].Equals("null"))
                     {
                         string Date = Game1.player.modData[ModEntry.MyModID + "_" + modID + "." + fullCreatureID];
@@ -198,44 +206,32 @@ namespace Creaturebook
                 }
                 else
                 {
-                    if (currentSetPage < pageOrder.Count - 1 && currentSetPage != 0)
+                    if (currentSetPage < pageOrder.Count - 1)
                     {
                         if ((!pageOrder[currentSetPage] && currentSetPage == pageOrder.Count - 1) || (!pageOrder[currentSetPage] && !pageOrder[currentSetPage + 1]))
                             DrawCreatureIcons(b, false, currentSetPage);
 
                         else if ((!pageOrder[currentSetPage] && pageOrder[currentSetPage + 1]) || pageOrder[currentSetPage])
                             DrawCreatureIcons(b, true, currentSetPage);
+                        lastSetOnItsOwn = false;
                     }
-                    else if (currentSetPage == 0)
+                    else if (currentSetPage == pageOrder.Count - 1 || lastSetOnItsOwn)
                     {
-                        if ((!pageOrder[currentSetPage] && currentSetPage == pageOrder.Count - 1) || (!pageOrder[currentSetPage] && !pageOrder[currentSetPage + 1]))
-                            DrawCreatureIcons(b, false, 0);
-                        else if ((!pageOrder[currentSetPage] && pageOrder[currentSetPage + 1]) || pageOrder[currentSetPage])
-                            DrawCreatureIcons(b, true, 0);
-                    }
-                    else if (currentSetPage == pageOrder.Count - 1 && currentChapter != ModEntry.Chapters.Count - 1)
-                    {
-                        if (!pageOrder[currentSetPage] || !pageOrder[currentSetPage])
-                            DrawCreatureIcons(b, false, currentSetPage);
+                        DrawCreatureIcons(b, pageOrder[currentSetPage], currentSetPage);
+                        lastSetOnItsOwn = true;
                     }
                 }
             }
             else
             {
-                /*if (ModEntry.Chapters[currentChapter].EnableSets)
-                    b.DrawString(Game1.smallFont, menuTexts[7], new Vector2(TopLeftCorner.X + 910 - 371, TopLeftCorner.Y + 100), Color.Black);
-                
-                else
-                    b.DrawString(Game1.smallFont, menuTexts[6], new Vector2(TopLeftCorner.X + 910 - 371, TopLeftCorner.Y + 100), Color.Black);*/
-
                 SpriteText.drawString(b, menuTexts[5], (int)TopLeftCorner.X + 30, (int)TopLeftCorner.Y + 54, width: 420, height: 490, scroll_text_alignment: SpriteText.ScrollTextAlignment.Center);
             }
-            if (actualID == 0 && IsHeaderPage && currentID == 0)
+            if (currentID == 0 && IsHeaderPage && currentID == 0)
             {
                 LeftArrow.visible = false;
                 RightArrow.draw(b);
             }
-            else if (actualID == ChapterYoureIn.Creatures.Count - 1 || (actualID == ChapterYoureIn.Creatures.Count && currentChapter == 0) || DontDrawRightArrow)
+            else if ((currentID == ModEntry.Chapters[^1].Creatures.Count - 1 && currentChapter == ModEntry.Chapters.Count - 1) || (currentSetPage == ModEntry.Chapters[^1].Sets.Count - 1 && lastSetOnItsOwn))
             {
                 RightArrow.visible = false;
                 LeftArrow.draw(b);
@@ -264,20 +260,6 @@ namespace Creaturebook
                         currentID = Convert.ToInt32(sender.Text);
                         willSearch = false;
                         textBox.Text = "";
-
-                        if (currentChapter is 0 && currentID != 0)
-                            actualID = currentID;
-
-                        else if (currentChapter is 0 && currentID == 0)
-                            actualID = 0;
-
-                        else
-                        {
-                            actualID = 0;
-                            for (int i = 0; i < currentChapter - 1; i++)
-                                actualID += ChapterYoureIn.Creatures.Count;
-                            actualID += currentID + ModEntry.Chapters.Count - 1;
-                        }
                         UpdateNotebookPage();
                     }
                 }
@@ -287,48 +269,20 @@ namespace Creaturebook
                     {
                         if (!string.IsNullOrEmpty(item.ScientificName))
                         {
-                            if (item.ScientificName.StartsWith(sender.Text, StringComparison.OrdinalIgnoreCase))
+                            if (item.ScientificName.Contains(sender.Text, StringComparison.OrdinalIgnoreCase))
                             {
                                 currentID = item.ID;
                                 willSearch = false;
                                 textBox.Text = "";
-
-                                if (currentChapter is 0 && currentID != 0)
-                                    actualID = currentID;
-
-                                else if (currentChapter is 0 && currentID == 0)
-                                    actualID = 0;
-
-                                else if (currentChapter > 0 && currentID > 0)
-                                {
-                                    actualID = 0;
-                                    for (int a = 0; a < currentChapter - 1; a++)
-                                        actualID += ChapterYoureIn.Creatures.Count;
-                                    actualID += currentID + ModEntry.Chapters.Count - 1;
-                                }
                                 UpdateNotebookPage();
                                 break;
                             }
                         }
-                        if (item.Name.StartsWith(sender.Text, StringComparison.OrdinalIgnoreCase))
+                        if (item.Name.Contains(sender.Text, StringComparison.OrdinalIgnoreCase))
                         {
                             currentID = item.ID;
                             willSearch = false;
                             textBox.Text = "";
-
-                            if (currentChapter is 0 && currentID != 0)
-                                actualID = currentID;
-
-                            else if (currentChapter is 0 && currentID == 0)
-                                actualID = 0;
-
-                            else if (currentChapter > 0 && currentID > 0)
-                            {
-                                actualID = 0;
-                                for (int a = 0; a < currentChapter - 1; a++)
-                                    actualID += ChapterYoureIn.Creatures.Count;
-                                actualID += currentID + ModEntry.Chapters.Count - 1;
-                            }
                             UpdateNotebookPage();
                             break;
                         }
@@ -342,32 +296,59 @@ namespace Creaturebook
         {
             if (Sticky_Blue.containsPoint(x, y))
                 UpdateStickies(2);
-            if (SwitchToNormal_1.containsPoint(x, y) && showSetPaging && !IsHeaderPage && !WasHeaderPage)
+            if (SwitchToNormal_1.containsPoint(x, y) && !IsHeaderPage && !WasHeaderPage)
             {
                 showSetPaging = false;
                 if (!currentID.Equals(ChapterYoureIn.Sets[currentSetPage].CreaturesBelongingToThisSet[0]))
                 {
                     currentID = ChapterYoureIn.Sets[currentSetPage].CreaturesBelongingToThisSet[0];
-                    actualID = 0;
-                    if (currentChapter > 0)
-                        for (int i = 0; i < currentChapter; i++)
-                            actualID += ModEntry.Chapters[i].Creatures.Count;
-                    actualID += currentID;
+                }
+                if (lastSetOnItsOwn)
+                {
+                    lastSetOnItsOwn = false;
                 }
             }
-            if (SwitchToNormal_2.containsPoint(x, y) && showSetPaging && !IsHeaderPage && !WasHeaderPage)
+            if (SwitchToNormal_2.containsPoint(x, y) && !IsHeaderPage && !WasHeaderPage)
             {
                 showSetPaging = false;
-                if (currentID != ChapterYoureIn.Sets[currentSetPage + 1].CreaturesBelongingToThisSet[0])
+                if (currentID != ChapterYoureIn.Sets[currentSetPage + 1].CreaturesBelongingToThisSet[0] || currentSetPage != 0)
+                {
+                    currentID = ChapterYoureIn.Sets[currentSetPage + 1].CreaturesBelongingToThisSet[0];
+                }
+                else if (currentSetPage == 0)
                 {
                     currentID += ChapterYoureIn.Sets[currentSetPage].CreaturesBelongingToThisSet.Length;
-                    actualID += ChapterYoureIn.Sets[currentSetPage].CreaturesBelongingToThisSet.Length;
                 }
+                wasOnSecondPage = true;
                 UpdateNotebookPage();
             }
-            if (ShowSetView.containsPoint(x, y) && !showSetPaging)
+            if (ShowSetView.containsPoint(x, y) && ChapterYoureIn.EnableSets)
             {
                 showSetPaging = true;
+                for (int i = 0; i < ChapterYoureIn.Sets.Count; i++)
+                {
+                    foreach (var item in ChapterYoureIn.Sets[i].CreaturesBelongingToThisSet)
+                    {
+                        if (currentID == item)
+                        {
+                            currentSetPage = i;
+                        }
+                    }
+                }
+                if (lastSetOnItsOwn)
+                {
+                    currentSetPage = ChapterYoureIn.Sets.Count - 1;
+                }
+                else if (wasOnSecondPage && currentSetPage > 0)
+                {
+                    currentID = ChapterYoureIn.Sets[currentSetPage - 1].CreaturesBelongingToThisSet[0];
+                    currentSetPage++;
+                    wasOnSecondPage = false;
+                }
+                else if (wasOnSecondPage && currentSetPage == 0)
+                {
+                    currentID = 0;
+                }
             }
             if (CloseButton.containsPoint(x, y))
             {
@@ -386,56 +367,59 @@ namespace Creaturebook
             {
                 if (IsHeaderPage)
                     IsHeaderPage = false;
-                else if (actualID > 0 && !showSetPaging)
+                else if (currentID > 0 && !showSetPaging)
                 {
-                    actualID--;
                     if (currentID == 0 && currentChapter != 0)
                     {
                         currentChapter--;
+                        ChapterYoureIn = ModEntry.Chapters[currentChapter];
                         currentID = ChapterYoureIn.Creatures.Count - 1;
                         WasHeaderPage = true;
                         IsHeaderPage = true;
-                        ChapterYoureIn = ModEntry.Chapters[currentChapter];
-                        CalculateSetPages(ChapterYoureIn);
+                        if (ChapterYoureIn.EnableSets)
+                        {
+                            CalculateSetPages(ChapterYoureIn);
+                            currentSetPage = ChapterYoureIn.Sets.Count - 1;
+                        }
+                        showSetPaging = ChapterYoureIn.EnableSets;
                     }
-                    else if (currentID > 0)
-                        currentID--;
+                    currentID--;
+                }
+                else if (showSetPaging)
+                {
+                    if (currentSetPage > 0)
+                    {
+                        if ((pageOrder[currentSetPage] && 0 == currentSetPage % 2) || pageOrder[currentSetPage])
+                        {
+                            currentID -= ChapterYoureIn.Sets[currentSetPage - 1].CreaturesBelongingToThisSet.Length - 1;
+                            currentSetPage--;
+                        }
+                        else if (currentSetPage is not 1 || currentSetPage == pageOrder.Count - 1)
+                        {
+                            currentID -= ChapterYoureIn.Sets[currentSetPage - 1].CreaturesBelongingToThisSet.Length - 1;
+                            currentID -= ChapterYoureIn.Sets[currentSetPage - 2].CreaturesBelongingToThisSet.Length - 1;
+                            currentSetPage--;
+                            currentSetPage--;
+                        }
+                    }
+                    else if (currentSetPage == 0 && currentChapter != 0)
+                    {
+                        currentChapter--;
+                        ChapterYoureIn = ModEntry.Chapters[currentChapter];
+                        currentID = ChapterYoureIn.Creatures.Count - 1;
+                        WasHeaderPage = true;
+                        IsHeaderPage = true;
+                        if (ChapterYoureIn.EnableSets)
+                        {
+                            CalculateSetPages(ChapterYoureIn);
+                            currentSetPage = ChapterYoureIn.Sets.Count - 1;
+                        }
+                        showSetPaging = ChapterYoureIn.EnableSets;
+                    }
                 }
                 else if (currentID == 0)
                     IsHeaderPage = true;
 
-                else if (showSetPaging)
-                {
-                    if (DontDrawRightArrow)
-                    {
-                        DontDrawRightArrow = false;
-                    }
-                    if (currentSetPage > 0)
-                    {
-                        actualID -= ChapterYoureIn.Sets[currentSetPage - 1].CreaturesBelongingToThisSet.Length - 1;
-                        currentID -= ChapterYoureIn.Sets[currentSetPage - 1].CreaturesBelongingToThisSet.Length - 1;
-                        if (currentSetPage is not 1 && !pageOrder[currentSetPage - 2] && !pageOrder[currentSetPage - 1])
-                        {
-                            actualID -= ChapterYoureIn.Sets[currentSetPage - 2].CreaturesBelongingToThisSet.Length - 1;
-                            currentID -= ChapterYoureIn.Sets[currentSetPage - 2].CreaturesBelongingToThisSet.Length - 1;
-                            currentSetPage--; currentSetPage--;
-                        }
-                        else if ((currentSetPage != 1 && pageOrder[currentSetPage - 1]) || (pageOrder[currentSetPage] && !pageOrder[currentSetPage - 1]))
-                        {
-                            currentSetPage--;
-                        }
-                    }
-                    if (currentSetPage is 0 && currentChapter != 0)
-                    {
-                        currentChapter--;
-                        currentID = ChapterYoureIn.Creatures.Count - 1;
-                        WasHeaderPage = true;
-                        IsHeaderPage = true;
-                        ChapterYoureIn = ModEntry.Chapters[currentChapter];
-                        CalculateSetPages(ChapterYoureIn);
-                        currentSetPage = pageOrder.Count - 1;
-                    }
-                }
                 for (int i = 0; i < 4; i++)
                     FindPageAndCheckSides(PagesWithStickies[i], false, i);
             }
@@ -443,53 +427,47 @@ namespace Creaturebook
             {
                 if (IsHeaderPage)
                     IsHeaderPage = false;
-                else if (actualID + 1 != ChapterYoureIn.Creatures.Count && !showSetPaging)
+                else if (currentID + 1 != ModEntry.Chapters[^1].Creatures.Count && currentChapter != ModEntry.Chapters.Count - 1 && !showSetPaging)
                 {
-                    actualID++;
-                    if (currentID + 1 == ChapterYoureIn.Creatures.Count && currentChapter < ModEntry.Chapters.Count - 1)
+                    if (currentID == ChapterYoureIn.Creatures.Count - 1 && currentChapter < ModEntry.Chapters.Count - 1)
                     {
                         currentChapter++;
                         currentID = 0;
+                        ChapterYoureIn = ModEntry.Chapters[currentChapter];
                         IsHeaderPage = true;
                         currentSetPage = 0;
-                        ChapterYoureIn = ModEntry.Chapters[currentChapter];
-
-                        CalculateSetPages(ChapterYoureIn);
+                        if (ChapterYoureIn.EnableSets)
+                        {
+                            CalculateSetPages(ChapterYoureIn);
+                        }
+                        showSetPaging = ChapterYoureIn.EnableSets;
                     }
-                    else
-                        currentID++;
+                    currentID++;
                 }
                 else if (showSetPaging)
                 {
                     if (currentSetPage < pageOrder.Count - 1)
                     {
-                        if (currentSetPage != pageOrder.Count - 1 && !pageOrder[currentSetPage + 1])
+                        if ((pageOrder[currentSetPage + 1] || pageOrder[currentSetPage] || (0 == pageOrder.Count - 1 % 2 && currentSetPage == pageOrder.Count - 2)) && !(currentSetPage == pageOrder.Count - 3))
                         {
-                            actualID += ChapterYoureIn.Sets[currentSetPage].CreaturesBelongingToThisSet.Length - 1;
                             currentID += ChapterYoureIn.Sets[currentSetPage].CreaturesBelongingToThisSet.Length - 1;
-                            actualID += ChapterYoureIn.Sets[currentSetPage + 1].CreaturesBelongingToThisSet.Length - 1;
-                            currentID += ChapterYoureIn.Sets[currentSetPage + 1].CreaturesBelongingToThisSet.Length - 1;
-                            currentSetPage++; currentSetPage++;
-                        }
-                        else if ((currentSetPage != pageOrder.Count - 1 && pageOrder[currentSetPage + 1]) || (pageOrder[currentSetPage] && !pageOrder[currentSetPage + 1]))
-                        {
-                            actualID += ChapterYoureIn.Sets[currentSetPage].CreaturesBelongingToThisSet.Length;
-                            currentID += ChapterYoureIn.Sets[currentSetPage].CreaturesBelongingToThisSet.Length;
                             currentSetPage++;
                         }
                         else if (currentSetPage == pageOrder.Count - 1 && currentChapter != ModEntry.Chapters.Count - 1)
                         {
-                            actualID += ChapterYoureIn.Sets[currentSetPage].CreaturesBelongingToThisSet.Length - 1;
                             currentChapter++;
                             currentID = 0;
                             IsHeaderPage = true;
                             currentSetPage = 0;
                             ChapterYoureIn = ModEntry.Chapters[currentChapter];
                             CalculateSetPages(ChapterYoureIn);
+                            showSetPaging = ChapterYoureIn.EnableSets;
                         }
-                        else if (currentSetPage == pageOrder.Count - 1 && currentChapter == ModEntry.Chapters.Count - 1)
+                        else
                         {
-                            DontDrawRightArrow = true;
+                            currentID += ChapterYoureIn.Sets[currentSetPage].CreaturesBelongingToThisSet.Length - 1;
+                            currentID += ChapterYoureIn.Sets[currentSetPage + 1].CreaturesBelongingToThisSet.Length - 1;
+                            currentSetPage++; currentSetPage++;
                         }
                     }
                 }
@@ -515,8 +493,6 @@ namespace Creaturebook
             MenuTextures[1] = ModEntry.Helper.GameContent.Load<Texture2D>(Path.Combine("KediDili.Creaturebook", ChapterYoureIn.FromContentPack.Manifest.UniqueID + "." + ChapterYoureIn.CreatureNamePrefix + "_" + currentID.ToString() + "_Image1"));
             menuTexts[5] = ModEntry.Helper.Translation.Get("CB.Chapter") + Convert.ToString(currentChapter + 1) + ": " + ChapterYoureIn.Title + "\n" + ModEntry.Helper.Translation.Get("CB.ChapterAuthorBy") + ChapterYoureIn.Author;
 
-            showSetPaging = ChapterYoureIn.EnableSets;
-
             if (CurrentCreature.HasScientificName)
                 menuTexts[0] = ModEntry.Helper.Translation.Get("CB.LatinName") + CurrentCreature.ScientificName;
             else
@@ -524,7 +500,7 @@ namespace Creaturebook
 
             if (WasHeaderPage)
             {
-                menuTexts[5] = authorchapterTitle = ModEntry.Helper.Translation.Get("CB.Chapter") + Convert.ToString(currentChapter + 2) + ": " + ChapterYoureIn.Title + "\n" + ModEntry.Helper.Translation.Get("CB.ChapterAuthorBy") + ChapterYoureIn.Author;
+                menuTexts[5] = authorchapterTitle = ModEntry.Helper.Translation.Get("CB.Chapter") + Convert.ToString(currentChapter + 2) + ": " + ModEntry.Chapters[currentChapter + 1].Title + "\n" + ModEntry.Helper.Translation.Get("CB.ChapterAuthorBy") + ModEntry.Chapters[currentChapter + 1].Author;
                 WasHeaderPage = false;
             }
             if (CurrentCreature.HasExtraImages)
@@ -547,6 +523,7 @@ namespace Creaturebook
         public void DrawCreatureIcons(SpriteBatch b, bool needsSecond, int i)
         {
             Texture2D creature;
+            
             for (int l = 0; l < ChapterYoureIn.Sets[i].OffsetsInMenu.Length; l++)
             {
                 creature = ModEntry.Helper.GameContent.Load<Texture2D>(Path.Combine("KediDili.Creaturebook", ChapterYoureIn.FromContentPack.Manifest.UniqueID + "." + ChapterYoureIn.CreatureNamePrefix + "_" + ChapterYoureIn.Sets[i].CreaturesBelongingToThisSet[l].ToString() + "_Image1"));
@@ -608,13 +585,7 @@ namespace Creaturebook
                         {
                             currentID = c;
                             currentChapter = i;
-                            actualID = 0;
-
-                            for (int a = 0; a < currentChapter - 1; a++)
-                                actualID += ChapterYoureIn.Creatures.Count;
-
-                            actualID += currentID + ModEntry.Chapters.Count - 1;
-
+                            
                             IsHeaderPage = false;
                             WasHeaderPage = false;
                             UpdateNotebookPage();

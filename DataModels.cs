@@ -20,13 +20,21 @@ namespace Creaturebook
     }
     public struct Chapter
     {
+        public enum Categories
+        {
+            Animals,
+            Plants,
+            Monsters,
+            Magical,
+            Other
+        }
         public string Title;
 
         public string Folder;
 
         public string CreatureNamePrefix;
 
-        public string Category;
+        public Categories Category;
 
         public IContentPack FromContentPack;
 
@@ -70,7 +78,7 @@ namespace Creaturebook
 
         public string Desc;
 
-        public string OverrideDefaultNaming;
+        public string[] OverrideDefaultNaming;
 
         public string Directory;
 

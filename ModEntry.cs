@@ -40,6 +40,7 @@ namespace Creaturebook
             Helper.Events.Player.Warped += OnWarped;
             Helper.ConsoleCommands.Add("cb_reload", "Reloads all CB packs when entered.", ReloadPacks);
             Helper.ConsoleCommands.Add("cb_instantDiscover", "Instantly discovers a creature.\n\nUsage:cb_InstantDiscover <Content Pack ID> <CreatureNamePrefix> <Creature ID>\n Content Pack ID: Unique ID of a content pack.\nCreatureNamePrefix: The prefix for the chapter to be searched.\nCreature ID: ID of the creature to be searched", InstantDiscover);
+            Helper.ConsoleCommands.Add("cb_instantTool","Instanly spawns the NotebookTool into your inventory", InstantToolSpawn);
         }
         private static void OnGameLaunched(object sender, GameLaunchedEventArgs e)
         {
@@ -64,11 +65,11 @@ namespace Creaturebook
                     var subfolders = new DirectoryInfo(Path.Combine(contentPack.DirectoryPath, chapterData[i].Folder)).GetDirectories();
                     List<Creature> newCreatures = new();
                     Chapter chapter = chapterData[i];
-                    if (chapter.Category != "Monsters" && chapter.Category != "Other" && chapter.Category != "Animals" && chapter.Category != "Plants" && chapter.Category != "Magical")
+                    /*if (chapter.Category != "Monsters" && chapter.Category != "Other" && chapter.Category != "Animals" && chapter.Category != "Plants" && chapter.Category != "Magical")
                     {
                         monitor.Log($"{contentPack.Manifest.Name} Has got a chapter with an invalid Category value: {chapter.Category}", LogLevel.Warn);
                         break;
-                    }
+                    }*/
                     if (subfolders.Length == 0)
                     {
                         monitor.Log($"{contentPack.Manifest.Name} doesn't seem to have any creatures at all! O.o", LogLevel.Warn);
@@ -239,14 +240,24 @@ namespace Creaturebook
         {
             OnGameLaunched(sender: null, e: null);
         }
+        private static void InstantToolSpawn(string command, string[] args)
+        {
+            if(Context.IsWorldReady)
+            Game1.player.addItemByMenuIfNecessary(new NotebookTool());
+        }
         private static void InstantDiscover(string command, string[] args)
         {
+            if(Context.IsWorldReady)
             for (int i = 0; i < Chapters.Count; i++)
             {
                 for (int l = 0; l < Chapters[i].Creatures.Count; l++)
                 {
                     if (args[0] == Chapters[i].FromContentPack.Manifest.UniqueID && Chapters[i].CreatureNamePrefix == args[1] && args[2] == Chapters[i].Creatures[l].ID.ToString())
-                        Game1.player.modData[args[0] + "." + args[1] + "_" + args[2]] = "true";
+                    { 
+                        Game1.player.modData[MyModID + "." + args[0] + "_" + args[1] + "_" + args[2]] = "true";
+                        monitor.Log("The creature successfully has been instantly discovered.", LogLevel.Info);
+                        return;
+                    }
                 }
             }
         }

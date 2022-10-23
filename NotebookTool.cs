@@ -94,14 +94,16 @@ namespace Creaturebook
                     {
                         ModEntry.monitor.Log("Yes this code is being run 1st method", LogLevel.Info);
                         string ID = Convert.ToString(chapter.Creatures[i].ID);
-
-                        if ((Characters.Name.Equals(chapter.CreatureNamePrefix + "_" + ID) || chapter.Creatures[i].OverrideDefaultNaming.Contains(Characters.Name)) && Characters.getTileLocation() == mousePos && Game1.player.modData[ModEntry.MyModID + "_IsNotebookObtained"] == "true")
+                        foreach (var item in chapter.Creatures[i].OverrideDefaultNaming)
                         {
-                            bool discover = Game1.player.modData[ModEntry.MyModID + "_" + chapter.FromContentPack.Manifest.UniqueID + "." + chapter.CreatureNamePrefix + "_" + ID] == "null";
-                            Discover(discover, false, "", chapter, chapter.Creatures[i]);
-                            return;
+                            if ((Characters.Name.Equals(chapter.CreatureNamePrefix + "_" + ID) || item.Equals(Characters.Name)) && Characters.getTileLocation() == mousePos && Game1.player.modData[ModEntry.MyModID + "_IsNotebookObtained"] == "true")
+                            {
+                                bool discover = Game1.player.modData[ModEntry.MyModID + "_" + chapter.FromContentPack.Manifest.UniqueID + "." + chapter.CreatureNamePrefix + "_" + ID] == "null";
+                                Discover(discover, false, "", chapter, chapter.Creatures[i]);
+                                return;
+                            }
                         }
-                        else if (attachments[0] != null)
+                        if (attachments[0] != null)
                         {
                             ModEntry.monitor.Log("Yes this code is being run 2nd method", LogLevel.Info);
                             if (attachments[0].ParentSheetIndex == chapter.Creatures[i].UseThisItem)
