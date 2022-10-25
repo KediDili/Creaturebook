@@ -40,6 +40,7 @@ namespace Creaturebook
         public override void endUsing(GameLocation location, Farmer who)
         {
             who.FarmerSprite.StopAnimation();
+            this.DoFunction(location, Game1.getOldMouseX() + Game1.viewport.X, Game1.getOldMouseY() + Game1.viewport.Y, 0, who);
         }
         public override int attachmentSlots()
         {
@@ -85,7 +86,12 @@ namespace Creaturebook
 
         public override void DoFunction(GameLocation location, int x, int y, int power, Farmer who)
         {
+            base.DoFunction(location, x, y, power, who);
             var mousePos = ModEntry.Helper.Input.GetCursorPosition().Tile;
+            CheckCreatures(mousePos);
+        }
+        private void CheckCreatures(Vector2 mousepos)
+        {
             foreach (var Characters in Game1.currentLocation.characters)
             {
                 foreach (var chapter in ModEntry.Chapters)
@@ -94,16 +100,28 @@ namespace Creaturebook
                     {
                         ModEntry.monitor.Log("Yes this code is being run 1st method", LogLevel.Info);
                         string ID = Convert.ToString(chapter.Creatures[i].ID);
-                        foreach (var item in chapter.Creatures[i].OverrideDefaultNaming)
+                        if (!string.IsNullOrEmpty(chapter.Creatures[i].OverrideDefaultNaming.ToString()))
                         {
-                            if ((Characters.Name.Equals(chapter.CreatureNamePrefix + "_" + ID) || item.Equals(Characters.Name)) && Characters.getTileLocation() == mousePos && Game1.player.modData[ModEntry.MyModID + "_IsNotebookObtained"] == "true")
+                            foreach (var item in chapter.Creatures[i].OverrideDefaultNaming)
+                            {
+                                if ((Characters.Name.Equals(chapter.CreatureNamePrefix + "_" + ID) || item.Equals(Characters.Name)) && Characters.getTileLocation() == mousepos && Game1.player.modData[ModEntry.MyModID + "_IsNotebookObtained"] == "true")
+                                {
+                                    bool discover = Game1.player.modData[ModEntry.MyModID + "_" + chapter.FromContentPack.Manifest.UniqueID + "." + chapter.CreatureNamePrefix + "_" + ID] == "null";
+                                    Discover(discover, false, "", chapter, chapter.Creatures[i]);
+                                    return;
+                                }
+                            }
+                        }
+                        else if (string.IsNullOrEmpty(chapter.Creatures[i].OverrideDefaultNaming.ToString()))
+                        {
+                            if (Characters.Name.Equals(chapter.CreatureNamePrefix + "_" + ID) && Characters.getTileLocation() == mousepos && Game1.player.modData[ModEntry.MyModID + "_IsNotebookObtained"] == "true")
                             {
                                 bool discover = Game1.player.modData[ModEntry.MyModID + "_" + chapter.FromContentPack.Manifest.UniqueID + "." + chapter.CreatureNamePrefix + "_" + ID] == "null";
                                 Discover(discover, false, "", chapter, chapter.Creatures[i]);
                                 return;
                             }
                         }
-                        if (attachments[0] != null)
+                        else if (attachments[0] != null)
                         {
                             ModEntry.monitor.Log("Yes this code is being run 2nd method", LogLevel.Info);
                             if (attachments[0].ParentSheetIndex == chapter.Creatures[i].UseThisItem)
@@ -127,20 +145,23 @@ namespace Creaturebook
                                 }
                             }
                         }
-                        foreach (var layer in Game1.currentLocation.Map.Layers)
+                        else 
                         {
-                            foreach (var tiles in layer.Tiles.Array)
+                            foreach (var layer in Game1.currentLocation.Map.Layers)
                             {
-                                if (tiles is null)
-                                    return;
-                                foreach (var property in tiles.Properties)
+                                foreach (var tiles in layer.Tiles.Array)
                                 {
-                                    ModEntry.monitor.Log("Yes this code is being run 3rd method", LogLevel.Info);
-                                    if (layer.Id == "Back" && property.Key == "Creaturebook" && property.Value.ToString().StartsWith("Discover"))
-                                    {
-                                        bool discover = Game1.player.modData[ModEntry.MyModID + "_" + property.Value.ToString()[8..]] == "null";
-                                        Discover(discover, true, property.Value.ToString()[8..], chapter, chapter.Creatures[i]);
+                                    if (tiles is null)
                                         return;
+                                    foreach (var property in tiles.Properties)
+                                    {
+                                        // ModEntry.monitor.Log("Yes this code is being run 3rd method", LogLevel.Info);
+                                        if (layer.Id == "Back" && property.Key == "Creaturebook" && property.Value.ToString().StartsWith("Discover"))
+                                        {
+                                            bool discover = Game1.player.modData[ModEntry.MyModID + "_" + property.Value.ToString()[8..]] == "null";
+                                            Discover(discover, true, property.Value.ToString()[8..], chapter, chapter.Creatures[i]);
+                                            return;
+                                        }
                                     }
                                 }
                             }
@@ -149,7 +170,7 @@ namespace Creaturebook
                 }
             }
         }
-        static private void Discover(bool ShouldBeDiscovered, bool IsFromTileData, string property, Chapter chapter, Creature creature)
+        private void Discover(bool ShouldBeDiscovered, bool IsFromTileData, string property, Chapter chapter, Creature creature)
         {
             SDate CurrentDate = SDate.Now();
             string convertedCurrentDate = CurrentDate.DaysSinceStart.ToString();

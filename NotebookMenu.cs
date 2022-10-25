@@ -292,6 +292,11 @@ namespace Creaturebook
         }
         public override void receiveKeyPress(Keys key) { }
         //Leave this here and empty so M and E buttons don't yeet your menu
+        public override void performHoverAction(int x, int y)
+        {
+            //Patch tools then use the same image to create 
+            //an empty ClickableTextureComponent hehe
+        }
         public override void receiveLeftClick(int x, int y, bool playSound = true)
         {
             if (Sticky_Blue.containsPoint(x, y))
@@ -342,7 +347,7 @@ namespace Creaturebook
                 else if (wasOnSecondPage && currentSetPage > 0)
                 {
                     currentID = ChapterYoureIn.Sets[currentSetPage - 1].CreaturesBelongingToThisSet[0];
-                    currentSetPage++;
+                    currentSetPage--;
                     wasOnSecondPage = false;
                 }
                 else if (wasOnSecondPage && currentSetPage == 0)
@@ -442,7 +447,8 @@ namespace Creaturebook
                         }
                         showSetPaging = ChapterYoureIn.EnableSets;
                     }
-                    currentID++;
+                    else
+                        currentID++;
                 }
                 else if (showSetPaging)
                 {
