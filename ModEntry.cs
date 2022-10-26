@@ -65,11 +65,7 @@ namespace Creaturebook
                     var subfolders = new DirectoryInfo(Path.Combine(contentPack.DirectoryPath, chapterData[i].Folder)).GetDirectories();
                     List<Creature> newCreatures = new();
                     Chapter chapter = chapterData[i];
-                    /*if (chapter.Category != "Monsters" && chapter.Category != "Other" && chapter.Category != "Animals" && chapter.Category != "Plants" && chapter.Category != "Magical")
-                    {
-                        monitor.Log($"{contentPack.Manifest.Name} Has got a chapter with an invalid Category value: {chapter.Category}", LogLevel.Warn);
-                        break;
-                    }*/
+                    
                     if (subfolders.Length == 0)
                     {
                         monitor.Log($"{contentPack.Manifest.Name} doesn't seem to have any creatures at all! O.o", LogLevel.Warn);

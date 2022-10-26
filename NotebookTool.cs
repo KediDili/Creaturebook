@@ -100,11 +100,11 @@ namespace Creaturebook
                     {
                         ModEntry.monitor.Log("Yes this code is being run 1st method", LogLevel.Info);
                         string ID = Convert.ToString(chapter.Creatures[i].ID);
-                        if (!string.IsNullOrEmpty(chapter.Creatures[i].OverrideDefaultNaming.ToString()))
+                        if (chapter.Creatures[i].OverrideDefaultNaming != null && chapter.Creatures[i].OverrideDefaultNaming.Length > 0)
                         {
                             foreach (var item in chapter.Creatures[i].OverrideDefaultNaming)
                             {
-                                if ((Characters.Name.Equals(chapter.CreatureNamePrefix + "_" + ID) || item.Equals(Characters.Name)) && Characters.getTileLocation() == mousepos && Game1.player.modData[ModEntry.MyModID + "_IsNotebookObtained"] == "true")
+                                if ((Characters.Name.Equals(chapter.CreatureNamePrefix + "_" + ID) || item.Equals(Characters.Name)) && Characters.getTileLocation() == mousepos /*&& Game1.player.modData[ModEntry.MyModID + "_IsNotebookObtained"] == "true"*/)
                                 {
                                     bool discover = Game1.player.modData[ModEntry.MyModID + "_" + chapter.FromContentPack.Manifest.UniqueID + "." + chapter.CreatureNamePrefix + "_" + ID] == "null";
                                     Discover(discover, false, "", chapter, chapter.Creatures[i]);
@@ -112,9 +112,9 @@ namespace Creaturebook
                                 }
                             }
                         }
-                        else if (string.IsNullOrEmpty(chapter.Creatures[i].OverrideDefaultNaming.ToString()))
+                        else if (chapter.Creatures[i].OverrideDefaultNaming == null)
                         {
-                            if (Characters.Name.Equals(chapter.CreatureNamePrefix + "_" + ID) && Characters.getTileLocation() == mousepos && Game1.player.modData[ModEntry.MyModID + "_IsNotebookObtained"] == "true")
+                            if (Characters.Name.Equals(chapter.CreatureNamePrefix + "_" + ID) && Characters.getTileLocation() == mousepos) //&& Game1.player.modData[ModEntry.MyModID + "_IsNotebookObtained"] == "true")
                             {
                                 bool discover = Game1.player.modData[ModEntry.MyModID + "_" + chapter.FromContentPack.Manifest.UniqueID + "." + chapter.CreatureNamePrefix + "_" + ID] == "null";
                                 Discover(discover, false, "", chapter, chapter.Creatures[i]);
