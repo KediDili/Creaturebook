@@ -96,9 +96,9 @@ namespace Creaturebook
             {
                 foreach (var chapter in ModEntry.Chapters)
                 {
-                    for (int i = 0; i < chapter.Creatures.Count; i++)
+                    for (int i = 0; i < chapter.Creatures.Length; i++)
                     {
-                        ModEntry.monitor.Log("Yes this code is being run 1st method", LogLevel.Info);
+                        //ModEntry.monitor.Log("Yes this code is being run 1st method", LogLevel.Info);
                         string ID = Convert.ToString(chapter.Creatures[i].ID);
                         if (chapter.Creatures[i].OverrideDefaultNaming != null && chapter.Creatures[i].OverrideDefaultNaming.Length > 0)
                         {
@@ -123,7 +123,7 @@ namespace Creaturebook
                         }
                         else if (attachments[0] != null)
                         {
-                            ModEntry.monitor.Log("Yes this code is being run 2nd method", LogLevel.Info);
+                            //ModEntry.monitor.Log("Yes this code is being run 2nd method", LogLevel.Info);
                             if (attachments[0].ParentSheetIndex == chapter.Creatures[i].UseThisItem)
                             {
                                 bool discover = Game1.player.modData[ModEntry.MyModID + "_" + chapter.FromContentPack.Manifest.UniqueID + "." + chapter.CreatureNamePrefix + "_" + ID] == "null";
@@ -132,7 +132,7 @@ namespace Creaturebook
                             }
                             else if (chapter.EnableSets)
                             {
-                                for (int l = 0; l < chapter.Sets.Count; l++)
+                                for (int l = 0; l < chapter.Sets.Length; l++)
                                 {
                                     if (attachments[0].ParentSheetIndex == chapter.Sets[l].DiscoverWithThisItem && 0 != chapter.Sets[l].DiscoverWithThisItem)
                                     {
@@ -147,7 +147,25 @@ namespace Creaturebook
                         }
                         else 
                         {
-                            foreach (var layer in Game1.currentLocation.Map.Layers)
+                            for (int x = 0; x < Game1.currentLocation.Map.Layers.Count; x++)
+                            {
+                                for (int l = 0; l < Game1.currentLocation.Map.Layers[x].Tiles.Array.Length; l++)
+                                {
+                                    if (Game1.currentLocation.Map.Layers[x].Tiles.Array[l, l] is null)
+                                        return;
+                                    foreach (var property in Game1.currentLocation.Map.Layers[x].Tiles.Array[l, l].Properties)
+                                    {
+                                        // ModEntry.monitor.Log("Yes this code is being run 3rd method", LogLevel.Info);
+                                        if (Game1.currentLocation.Map.Layers[x].Id == "Back" && property.Key == "Creaturebook" && property.Value.ToString().StartsWith("Discover"))
+                                        {
+                                            bool discover = Game1.player.modData[ModEntry.MyModID + "_" + property.Value.ToString()[8..]] == "null";
+                                            Discover(discover, true, property.Value.ToString()[8..], chapter, chapter.Creatures[i]);
+                                            return;
+                                        }
+                                    }
+                                }
+                            }
+                            /*foreach (var layer in Game1.currentLocation.Map.Layers)
                             {
                                 foreach (var tiles in layer.Tiles.Array)
                                 {
@@ -164,7 +182,7 @@ namespace Creaturebook
                                         }
                                     }
                                 }
-                            }
+                            }*/
                         }
                     }
                 }
@@ -176,16 +194,17 @@ namespace Creaturebook
             string convertedCurrentDate = CurrentDate.DaysSinceStart.ToString();
             string hudMessage = ModEntry.Helper.Translation.Get("CB.discoveredHUDMessage");
             string hudMessage_AlreadyDiscovered = ModEntry.Helper.Translation.Get("CB.discoveredHUDMessage.Already");
+            string creatureName = string.IsNullOrEmpty(creature.NameKey) ? chapter.FromContentPack.Translation.Get(chapter.CreatureNamePrefix + "_" + creature.ID.ToString() + "_name") : chapter.FromContentPack.Translation.Get(creature.NameKey);
 
             if (ShouldBeDiscovered && !IsFromTileData)
             {
                 Game1.player.modData[ModEntry.MyModID + "_" + chapter.FromContentPack.Manifest.UniqueID + "." + chapter.CreatureNamePrefix + "_" + creature.ID] = convertedCurrentDate;
-                Game1.addHUDMessage(new HUDMessage(hudMessage + creature.Name, 1));
+                Game1.addHUDMessage(new HUDMessage(hudMessage + creatureName, 1));
             }
             else if (ShouldBeDiscovered && IsFromTileData)
             {
                 Game1.player.modData[ModEntry.MyModID + "_" + property] = convertedCurrentDate;
-                Game1.addHUDMessage(new HUDMessage(hudMessage + creature.Name, 1));
+                Game1.addHUDMessage(new HUDMessage(hudMessage + creatureName, 1));
             }
             else
                 Game1.addHUDMessage(new HUDMessage(hudMessage_AlreadyDiscovered, 1));

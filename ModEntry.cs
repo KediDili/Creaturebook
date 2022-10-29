@@ -15,7 +15,7 @@ namespace Creaturebook
     {
         internal static new IModHelper Helper;
 
-        static readonly List<string> uniqueModIDs = new();
+        string[] uniqueModIDs;
         static IManifest manifest;
 
         internal static ModConfig modConfig = new();
@@ -42,66 +42,64 @@ namespace Creaturebook
             Helper.ConsoleCommands.Add("cb_instantDiscover", "Instantly discovers a creature.\n\nUsage:cb_InstantDiscover <Content Pack ID> <CreatureNamePrefix> <Creature ID>\n Content Pack ID: Unique ID of a content pack.\nCreatureNamePrefix: The prefix for the chapter to be searched.\nCreature ID: ID of the creature to be searched", InstantDiscover);
             Helper.ConsoleCommands.Add("cb_instantTool","Instanly spawns the NotebookTool into your inventory", InstantToolSpawn);
         }
-        private static void OnGameLaunched(object sender, GameLaunchedEventArgs e)
+        
+        private void OnGameLaunched(object sender, GameLaunchedEventArgs e)
         {
-            foreach (IContentPack contentPack in Helper.ContentPacks.GetOwned())
+            IContentPack[] contentPacks = Helper.ContentPacks.GetOwned().ToArray();
+            uniqueModIDs = new string[contentPacks.Length];
+            for (int i = 0; i < contentPacks.Length; i++)
             {
-                monitor.Log($"Reading content pack: {contentPack.Manifest.Name}, v{contentPack.Manifest.Version}");
-                List<Chapter> chapterData = new();
-                if (!contentPack.HasFile("chapter.json"))
+                monitor.Log($"Reading content pack: {contentPacks[i].Manifest.Name}, v{contentPacks[i].Manifest.Version}");
+
+                if (!contentPacks[i].HasFile("chapter.json"))
                 {
-                    monitor.Log($"{contentPack.Manifest.Name} seems to lack the 'chapter.json' file that is required. If you're the author please add the file or check your spelling in the filename, if you're a simple player please let the content pack author know of this error or reinstall the content pack. (If you read this at all, that is.)", LogLevel.Error);
+                    monitor.Log($"{contentPacks[i].Manifest.Name} seems to lack the 'chapter.json' file that is required. If you're the author please add the file or check your spelling in the filename, if you're a simple player please let the content pack author know of this error or reinstall the content pack. (If you read this at all, that is.)", LogLevel.Error);
                     continue;
                 }
-                chapterData = contentPack.ReadJsonFile<List<Chapter>>("chapter.json");
+                Chapter[] chapterData = contentPacks[i].ReadJsonFile<Chapter[]>("chapter.json");
 
                 if (chapterData == null)
                 {
-                    monitor.Log($"{contentPack.Manifest.Name} seems to have the 'chapter.json', but it's empty. If I just wanted a null value I'd not ask for the file at all, right?", LogLevel.Warn);
+                    monitor.Log($"{contentPacks[i].Manifest.Name} seems to have the 'chapter.json', but it's empty. If I just wanted a null value I'd not ask for the file at all, right?", LogLevel.Warn);
                     continue;
                 }
-                for (int i = 0; i < chapterData.Count; i++)
+                
+                for (int f = 0; f < chapterData.Length; f++)
                 {
-                    var subfolders = new DirectoryInfo(Path.Combine(contentPack.DirectoryPath, chapterData[i].Folder)).GetDirectories();
+                    DirectoryInfo[] subfolders = new DirectoryInfo(Path.Combine(contentPacks[i].DirectoryPath, chapterData[f].Folder)).GetDirectories();
                     List<Creature> newCreatures = new();
-                    Chapter chapter = chapterData[i];
-                    
                     if (subfolders.Length == 0)
                     {
-                        monitor.Log($"{contentPack.Manifest.Name} doesn't seem to have any creatures at all! O.o", LogLevel.Warn);
+                        monitor.Log($"{contentPacks[i].Manifest.Name} doesn't seem to have any creatures at all! O.o", LogLevel.Warn);
                         continue;
                     }
-                    foreach (var subfolder in subfolders)
+                    for (int s = 0; s < subfolders.Length; s++)
                     {
-                        if (!File.Exists(Path.Combine(subfolder.FullName, "creature.json")))
+                        if (!File.Exists(Path.Combine(subfolders[s].FullName, "creature.json")))
                         {
-                            monitor.Log($"{contentPack.Manifest.Name} seems to lack a 'creature.json' under {subfolder.Name}.", LogLevel.Warn);
+                            monitor.Log($"{contentPacks[i].Manifest.Name} seems to lack a 'creature.json' under {subfolders[s].Name}.", LogLevel.Warn);
                             break;
                         }
-                        Creature[] creatureData = contentPack.ReadJsonFile<Creature[]>(Path.Combine(subfolder.Parent.Name, subfolder.Name, "creature.json"));
-                        Creature creature = creatureData[0];
+                        Creature[] creatureData = contentPacks[i].ReadJsonFile<Creature[]>(Path.Combine(subfolders[s].Parent.Name, subfolders[s].Name, "creature.json"));
 
-                        if (!File.Exists(Path.Combine(subfolder.FullName, "book-image.png")))
+                        if (!File.Exists(Path.Combine(subfolders[s].FullName, "book-image.png")))
                         {
-                            monitor.Log($"{contentPack.Manifest.Name} seems to lack a 'book-image.png' under {subfolder.Name}.", LogLevel.Warn);
+                            monitor.Log($"{contentPacks[i].Manifest.Name} seems to lack a 'book-image.png' under {subfolders[s].Name}.", LogLevel.Warn);
                             break;
                         }
-                        creature.Name = contentPack.Translation.Get(chapter.CreatureNamePrefix + "_" + creature.ID + "_name");
-                        creature.Desc = contentPack.Translation.Get(chapter.CreatureNamePrefix + "_" + creature.ID + "_desc");
-                        chapter.FromContentPack = contentPack;
-                        if (!File.Exists(Path.Combine(subfolder.FullName, "book-image_2.png")) && creature.HasExtraImages)
+                        chapterData[f].FromContentPack = contentPacks[i];
+                        if (!File.Exists(Path.Combine(subfolders[s].FullName, "book-image_2.png")) && creatureData[0].HasExtraImages)
                         {
-                            monitor.Log($"{contentPack.Manifest.Name} seems to lack a 'book-image_2.png' under {subfolder.Name}.", LogLevel.Warn);
+                            monitor.Log($"{contentPacks[i].Manifest.Name} seems to lack a 'book-image_2.png' under {subfolders[s].Name}.", LogLevel.Warn);
                             break;
                         }
-                        creature.Directory = PathUtilities.NormalizePath(subfolder.FullName);
-                        newCreatures.Add(creature);
+                        creatureData[0].Directory = PathUtilities.NormalizePath(subfolders[s].FullName);
+                        newCreatures.Add(creatureData[0]);
                     }
-                    chapter.Creatures = newCreatures.OrderBy(o => o.ID).ToList();
-                    Chapters.Add(chapter);
-                    newCreatures = new List<Creature>();
+                    chapterData[f].Creatures = newCreatures.OrderBy(o => o.ID).ToArray();
+                    Chapters.Add(chapterData[f]);
                 }
-                uniqueModIDs.Add(contentPack.Manifest.UniqueID);
+                uniqueModIDs[i] = contentPacks[i].Manifest.UniqueID;
                 if (checksIfUsedCommand is 0)
                     checksIfUsedCommand = 1;
             }
@@ -232,21 +230,21 @@ namespace Creaturebook
                 allowedValues: new string[] { Option1, Option2, Option3 }
             );
         }
-        private static void ReloadPacks(string command, string[] args)
+        private void ReloadPacks(string command, string[] args)
         {
             OnGameLaunched(sender: null, e: null);
         }
-        private static void InstantToolSpawn(string command, string[] args)
+        private void InstantToolSpawn(string command, string[] args)
         {
             if(Context.IsWorldReady)
             Game1.player.addItemByMenuIfNecessary(new NotebookTool());
         }
-        private static void InstantDiscover(string command, string[] args)
+        private void InstantDiscover(string command, string[] args)
         {
             if(Context.IsWorldReady)
             for (int i = 0; i < Chapters.Count; i++)
             {
-                for (int l = 0; l < Chapters[i].Creatures.Count; l++)
+                for (int l = 0; l < Chapters[i].Creatures.Length; l++)
                 {
                     if (args[0] == Chapters[i].FromContentPack.Manifest.UniqueID && Chapters[i].CreatureNamePrefix == args[1] && args[2] == Chapters[i].Creatures[l].ID.ToString())
                     { 
@@ -265,27 +263,27 @@ namespace Creaturebook
             if (!Context.IsPlayerFree)
                 return;
 
-            if (modConfig.OpenMenuKeybind.JustPressed() && uniqueModIDs.Count > 0)
+            if (modConfig.OpenMenuKeybind.JustPressed() && uniqueModIDs.Length > 0)
                 Game1.activeClickableMenu = new NotebookMenu();
-            else if (modConfig.OpenMenuKeybind.JustPressed() && uniqueModIDs.Count == 0)
+            else if (modConfig.OpenMenuKeybind.JustPressed() && uniqueModIDs.Length == 0)
                 Game1.addHUDMessage(new HUDMessage(Helper.Translation.Get("CB.noContentPacks"), 2));
         }
         private void OnAssetRequested(object sender, AssetRequestedEventArgs e)
         {
-            if (e.Name.IsEquivalentTo(Path.Combine("KediDili.Creaturebook", "NotebookTexture")))
+            if (e.Name.IsEquivalentTo(Path.Combine(MyModID, "NotebookTexture")))
                 e.LoadFromModFile<Texture2D>("assets/NotebookTexture.png", AssetLoadPriority.Medium);
 
-            if (e.Name.IsEquivalentTo(Path.Combine("KediDili.Creaturebook", "NoteItem")))
+            if (e.Name.IsEquivalentTo(Path.Combine(MyModID, "NoteItem")))
                 e.LoadFromModFile<Texture2D>("assets/NoteItem.png", AssetLoadPriority.Medium);
 
-            if (e.Name.IsEquivalentTo(Path.Combine("KediDili.Creaturebook", "Stickies")))
+            if (e.Name.IsEquivalentTo(Path.Combine(MyModID, "Stickies")))
                 e.LoadFromModFile<Texture2D>("assets/Stickies.png", AssetLoadPriority.Medium);
 
             foreach (var chapter in Chapters)
             {
-                for (int i = 0; i < chapter.Creatures.Count; i++)
+                for (int i = 0; i < chapter.Creatures.Length; i++)
                 {
-                    if (e.Name.IsEquivalentTo(Path.Combine("KediDili.Creaturebook", chapter.FromContentPack.Manifest.UniqueID + "." + chapter.CreatureNamePrefix + "_" + chapter.Creatures[i].ID + "_Image1")))
+                    if (e.Name.IsEquivalentTo(Path.Combine(MyModID, chapter.FromContentPack.Manifest.UniqueID + "." + chapter.CreatureNamePrefix + "_" + chapter.Creatures[i].ID + "_Image1")))
                     {
                         Texture2D firstImage()
                         {
@@ -294,7 +292,7 @@ namespace Creaturebook
                         e.LoadFrom(firstImage, AssetLoadPriority.Medium, onBehalfOf: chapter.FromContentPack.Manifest.UniqueID);
                         break;
                     }
-                    if (e.Name.IsEquivalentTo(Path.Combine("KediDili.Creaturebook", chapter.FromContentPack.Manifest.UniqueID + "." + chapter.CreatureNamePrefix + "_" + chapter.Creatures[i].ID + "_Image2")))
+                    if (e.Name.IsEquivalentTo(Path.Combine(MyModID, chapter.FromContentPack.Manifest.UniqueID + "." + chapter.CreatureNamePrefix + "_" + chapter.Creatures[i].ID + "_Image2")))
                     {
                         Texture2D secondImage()
                         {
@@ -303,7 +301,7 @@ namespace Creaturebook
                         e.LoadFrom(secondImage, AssetLoadPriority.Medium, onBehalfOf: chapter.FromContentPack.Manifest.UniqueID);
                         break;
                     }
-                    if (e.Name.IsEquivalentTo(Path.Combine("KediDili.Creaturebook", chapter.FromContentPack.Manifest.UniqueID + "." + chapter.CreatureNamePrefix + "_" + chapter.Creatures[i].ID + "_Image3")))
+                    if (e.Name.IsEquivalentTo(Path.Combine(MyModID, chapter.FromContentPack.Manifest.UniqueID + "." + chapter.CreatureNamePrefix + "_" + chapter.Creatures[i].ID + "_Image3")))
                     {
                         Texture2D thirdImage()
                         {
@@ -312,6 +310,15 @@ namespace Creaturebook
                         e.LoadFrom(thirdImage, AssetLoadPriority.Medium, onBehalfOf: chapter.FromContentPack.Manifest.UniqueID);
                         break;
                     }
+                    /*if (e.Name.IsEquivalentTo(Path.Combine(MyModID, chapter.FromContentPack.Manifest.UniqueID + "." + chapter.CreatureNamePrefix + "_" + chapter.Creatures[i].ID + "_Data")))
+                    {
+                        Creature creatureData()
+                        {
+                            return chapter.FromContentPack.ModContent.Load<Creature[]>(PathUtilities.NormalizeAssetName(Path.Combine(chapter.Creatures[i].Directory, "creature.json")))[0];
+                        }
+                        e.LoadFrom(creatureData, AssetLoadPriority.Medium, onBehalfOf: chapter.FromContentPack.Manifest.UniqueID);
+                        break;
+                    }*/
                 }
             }
 
@@ -411,7 +418,7 @@ namespace Creaturebook
                             
                         }
                     }
-                    for (int i = 0; i < uniqueModIDs.Count; i++)
+                    for (int i = 0; i < uniqueModIDs.Length; i++)
                         Game1.player.modData[MyModID + "_" + "PreviouslyDownloadedPacks" + i.ToString()] = uniqueModIDs[i];
                 }
                 Helper.Data.WriteSaveData<ModData>("KediDili.Creaturebook-PreviouslyDownloadedPacks", null);
@@ -444,7 +451,7 @@ namespace Creaturebook
                 
                 foreach (var chapter in Chapters)
                 {
-                    for (int i = 0; i < chapter.Creatures.Count; i++)
+                    for (int i = 0; i < chapter.Creatures.Length; i++)
                     {
                         if (!Game1.player.modData.ContainsKey(MyModID + "_" + chapter.FromContentPack.Manifest.UniqueID + "." + chapter.CreatureNamePrefix + "_" + Convert.ToString(chapter.Creatures[i].ID)))
                             Game1.player.modData.Add(MyModID + "_" + chapter.FromContentPack.Manifest.UniqueID + "." + chapter.CreatureNamePrefix + "_" + chapter.Creatures[i].ID, "null");
