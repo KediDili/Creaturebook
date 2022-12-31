@@ -9,7 +9,7 @@ using StardewModdingAPI;
 using StardewModdingAPI.Utilities;
 using StardewValley;
 
-namespace Creaturebook
+namespace Creaturebook.Framework.Interfaces
 {
     public interface IGenericModConfigMenuApi
     {
